@@ -8,6 +8,7 @@ import Notification from './sidebar/notifications/Notification';
 import User from './sidebar/user/User';
 import Dashboard from './sidebar/dashboard/Dashboard';
 import Categories from './sidebar/Categories/Categories';
+import SoundManagement from './sidebar/SoundManagement/SoundManagement';
 
 function Home() {
   const [selectedContent, setSelectedContent] = useState('Dashboard');
@@ -22,8 +23,8 @@ function Home() {
         return <Dashboard />;
       case 'Categories':
         return <Categories />;
-      case 'User Activity':
-        return <UserActivity />;
+      case 'Sound Management':
+        return <SoundManagement />;
       case 'Subscription':
         return <Subscription />;
       case 'Payment':

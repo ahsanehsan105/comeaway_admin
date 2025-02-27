@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const CategoryForm = ({ category, onSave, onClose }) => {
+const CategoryForm = ({ category, onSave, onClose, isEditMode }) => {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
 
@@ -46,12 +46,12 @@ const CategoryForm = ({ category, onSave, onClose }) => {
           <div className="flex justify-end space-x-2">
             <button 
               type="submit" 
-              className="text-black py-2 px-4 rounded-md transition duration-300 ease-in-out" 
+              className="text-white py-2 px-4 rounded-md transition duration-300 ease-in-out" 
               style={{ backgroundColor: '#439AB8' }}
               onMouseOver={(e) => e.target.style.backgroundColor = '#367A94'}
               onMouseOut={(e) => e.target.style.backgroundColor = '#439AB8'}
             >
-              Save
+              {isEditMode ? 'Save' : 'Add Category'}
             </button>
             <button 
               type="button" 
