@@ -1,14 +1,12 @@
 import React, { useState } from 'react';
 import Navbar from '../pages/navbar/Navbar';
 import Sidebar from './sidebar/Sidebar';
-import UserActivity from './sidebar/useractivity/UserActivity';
-import Subscription from './sidebar/subscription/Subscription';
-import Payment from './sidebar/payment/Payment';
-import Notification from './sidebar/notifications/Notification';
-import User from './sidebar/user/User';
 import Dashboard from './sidebar/dashboard/Dashboard';
 import Categories from './sidebar/Categories/Categories';
 import SoundManagement from './sidebar/SoundManagement/SoundManagement';
+import SubscriptionManagement from './sidebar/SubscriptionManagement/SubscriptionManagement';
+import UserManagement from './sidebar/UserManagement/UserManagement';
+import Settings from './sidebar/Settings/Settings';
 
 function Home() {
   const [selectedContent, setSelectedContent] = useState('Dashboard');
@@ -23,16 +21,16 @@ function Home() {
         return <Dashboard />;
       case 'Categories':
         return <Categories />;
-      case 'Sound Management':
+      case 'SoundManagement':
         return <SoundManagement />;
       case 'Subscription':
-        return <Subscription />;
-      case 'Payment':
-        return <Payment />;
-      case 'Notifications':
-        return <Notification />;
+        return <SubscriptionManagement />;
+      case 'UserManagement':
+        return <UserManagement />;
+      case 'Settings':
+        return <Settings />;
       default:
-        return <UserActivity />;
+        return <Dashboard />;
     }
   };
 

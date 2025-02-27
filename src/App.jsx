@@ -14,9 +14,9 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home  />} />
-        {/* <Route path="/login" element={<Login onLogin={handleLogin} />} /> */}
-        {/* <Route path="/*" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} /> */}
+        {/* <Route path="/" element={<Home  />} /> */}
+        <Route path="/login" element={<Login onLogin={handleLogin} />} />
+        <Route path="/*" element={isAuthenticated ? <Home /> : <Navigate to="/login" />} />
       </Routes>
     </Router>
   );
