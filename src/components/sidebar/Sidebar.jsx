@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
+import { CgList } from 'react-icons/cg';
 import { FaUser, FaRegCreditCard, FaDollarSign, FaBell, FaBars, FaTimes } from 'react-icons/fa';
 import { FiUsers } from 'react-icons/fi';
 import { LuLayoutDashboard } from 'react-icons/lu';
 import { MdLogout } from 'react-icons/md';
+import { TbPlaylistAdd } from 'react-icons/tb';
 
 function Sidebar({ onMenuItemClick }) {
   const [isOpen, setIsOpen] = useState(false);
@@ -28,7 +30,7 @@ function Sidebar({ onMenuItemClick }) {
           </li>
           <li className="mt-5">
             <button onClick={() => onMenuItemClick('Categories')} className={`flex items-center px-1 py-2 text-gray-300 hover:bg-[#5AD4FF] hover:text-black cursor-pointer rounded w-full text-left ${isOpen ? 'border-b' : 'border-none justify-center'}`}>
-              <FiUsers className="mr-3" size={20} />
+              <CgList className="mr-3" size={20} />
               {isOpen && <span>Categories</span>}
             </button>
           </li>

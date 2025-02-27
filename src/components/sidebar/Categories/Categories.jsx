@@ -53,12 +53,12 @@ const Categories = () => {
 
   return (
     <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold text-center mb-4">Categories</h1>
+      <h1 className="text-4xl font-bold text-center mb-4 mt-6">Categories</h1>
       <div className="flex justify-end mb-4">
         <button 
           onClick={handleAddCategory} 
-          className="text-white py-2 px-4 rounded"
-          style={{ backgroundColor: '#5AD4FF' }}
+          className="text-black py-2 px-4 rounded"
+          style={{ backgroundColor: '#439AB8' }}
         >
           Add New Category
         </button>

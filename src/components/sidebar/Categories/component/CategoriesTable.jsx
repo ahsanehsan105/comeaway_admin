@@ -24,8 +24,8 @@ const CategoriesTable = ({ categories, onEdit, onDelete }) => {
   );
 
   return (
-    <div className="overflow-x-auto">
-      <table className="min-w-full bg-white border">
+    <div className="overflow-x-auto rounded-md">
+      <table className="border min-w-full bg-white rounded-md" >
         <thead>
           <tr>
             <th className="py-2 px-4 border text-center">
