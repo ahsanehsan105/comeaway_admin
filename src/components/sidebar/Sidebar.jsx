@@ -8,7 +8,7 @@ import { TbMusicCog } from 'react-icons/tb';
 
 function Sidebar({ onMenuItemClick }) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState('');
+  const [activeTab, setActiveTab] = useState('Dashboard');
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -27,11 +27,18 @@ function Sidebar({ onMenuItemClick }) {
   return (
     <div className={`flex flex-col min-h-screen ${isOpen ? 'w-64' : 'w-20'} bg-gray-800 text-white shadow-lg transition-all duration-300`}>
       <div className="flex items-center justify-between w-full px-4 py-4">
-        <button onClick={handleToggle} className="text-white text-lg">
-          {isOpen ? <FaTimes /> : <FaBars />}
-        </button>
+        {!isOpen && (
+          <button onClick={handleToggle} className="text-white text-lg mx-auto">
+            <FaBars />
+          </button>
+        )}
+        {isOpen && (
+          <button onClick={handleToggle} className="text-white text-lg ml-auto">
+            <FaTimes />
+          </button>
+        )}
       </div>
-      <nav className="mt-5 w-full">
+      <nav className="mt-2 w-full">
         <ul>
           {[
             { name: 'Dashboard', icon: <LuLayoutDashboard size={20} /> },
@@ -44,7 +51,7 @@ function Sidebar({ onMenuItemClick }) {
             <li key={item.name} className="mt-5">
               <button
                 onClick={() => handleMenuItemClick(item.name)}
-                className={`flex items-center justify-center px-1 py-2 text-gray-300 cursor-pointer rounded w-full text-left transition-all duration-300 ${
+                className={`flex items-center px-1 py-2 text-gray-300 cursor-pointer rounded w-full text-left transition-all duration-300 ${
                   isOpen ? 'justify-start' : 'justify-center'
                 } ${activeTab === item.name ? 'bg-white text-black' : 'hover:bg-[#5AD4FF]'} ${
                   isOpen ? 'border-b' : 'border-none'
@@ -57,12 +64,12 @@ function Sidebar({ onMenuItemClick }) {
               </button>
             </li>
           ))}
-          <li className="mt-5 w-full">
+          <li className="mt-5">
             <button
               onClick={handleLogout}
-              className={`flex items-center justify-center px-1 py-2 text-gray-300 cursor-pointer rounded w-full text-left transition-all duration-300 ${
+              className={`flex items-center px-1 py-2 text-gray-300 cursor-pointer rounded w-full text-left transition-all duration-300 ${
                 isOpen ? 'justify-start' : 'justify-center'
-              } hover:bg-[#5AD4FF]`}
+              } hover:bg-[#5AD4FF] ${isOpen ? 'border-b' : 'border-none'}`}
             >
               <div className={`${isOpen ? 'mr-3' : ''} text-white`}>
                 <MdLogout size={20} />
