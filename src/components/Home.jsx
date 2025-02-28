@@ -7,6 +7,7 @@ import SoundManagement from './sidebar/SoundManagement/SoundManagement';
 import SubscriptionManagement from './sidebar/SubscriptionManagement/SubscriptionManagement';
 import UserManagement from './sidebar/UserManagement/UserManagement';
 import Settings from './sidebar/Settings/Settings';
+import CategoryManagement from './sidebar/CategoryManagment/CategoryManagement';
 
 function Home() {
   const [selectedContent, setSelectedContent] = useState('Dashboard');
@@ -20,7 +21,7 @@ function Home() {
       case 'Dashboard':
         return <Dashboard />;
       case 'Categories':
-        return <Categories />;
+        return <CategoryManagement />;
       case 'SoundManagement':
         return <SoundManagement />;
       case 'Subscription':
