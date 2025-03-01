@@ -10,6 +10,8 @@ const UserManagement = ({ subscriptions }) => {
     const [userNameSearch, setUserNameSearch] = useState('');
     const [selectedUser, setSelectedUser] = useState(null);
     const [selectedStatus, setSelectedStatus] = useState('');
+    const [subscriptionSearch, setSubscriptionSearch] = useState('');
+    const [transactionIdSearch, setTransactionIdSearch] = useState('');
     const itemsPerPage = 5;
 
     // Dummy subscriptions data
@@ -23,7 +25,19 @@ const UserManagement = ({ subscriptions }) => {
         { id: 7, userId: 107, userName: 'Eve Davis', status: 'active' },
     ];
 
+    const dummySubscriptionHistory = [
+        { transactionId: 1, userId: 101, subscriptionName: 'Standard', startDate: '2022-01-01', endDate: '2023-01-01' },
+        { transactionId: 2, userId: 101, subscriptionName: 'Premium', startDate: '2023-02-01', endDate: '2024-02-01' },
+        { transactionId: 3, userId: 102, subscriptionName: 'Standard', startDate: '2022-03-01', endDate: '2023-03-01' },
+        { transactionId: 4, userId: 103, subscriptionName: 'Premium', startDate: '2022-04-01', endDate: '2023-04-01' },
+        { transactionId: 5, userId: 104, subscriptionName: 'Standard', startDate: '2022-05-01', endDate: '2023-05-01' },
+        { transactionId: 6, userId: 105, subscriptionName: 'Premium', startDate: '2022-06-01', endDate: '2023-06-01' },
+        { transactionId: 7, userId: 106, subscriptionName: 'Standard', startDate: '2022-07-01', endDate: '2023-07-01' },
+        { transactionId: 8, userId: 107, subscriptionName: 'Premium', startDate: '2022-08-01', endDate: '2023-08-01' },
+    ];
+
     const [subscriptionData, setSubscriptionData] = useState(dummySubscriptions);
+    const [subscriptionHistory, setSubscriptionHistory] = useState(dummySubscriptionHistory);
 
     const handleStatusChange = (id) => {
         const updatedSubscriptions = subscriptionData.map(subscription =>
@@ -58,6 +72,14 @@ const UserManagement = ({ subscriptions }) => {
         setUserNameSearch(e.target.value);
     };
 
+    const handleSubscriptionSearchChange = (e) => {
+        setSubscriptionSearch(e.target.value);
+    };
+
+    const handleTransactionIdSearchChange = (e) => {
+        setTransactionIdSearch(e.target.value);
+    };
+
     const handleUserPreview = (user) => {
         setSelectedUser(user);
         setSelectedStatus(user.status);
@@ -69,6 +91,12 @@ const UserManagement = ({ subscriptions }) => {
 
     const filteredData = subscriptionData.filter(subscription =>
         subscription.userId.toString().includes(userIdSearch) && subscription.userName.toLowerCase().includes(userNameSearch.toLowerCase())
+    );
+
+    const filteredSubscriptionHistory = subscriptionHistory.filter(history =>
+        history.userId === selectedUser?.userId &&
+        history.subscriptionName.toLowerCase().includes(subscriptionSearch.toLowerCase()) &&
+        history.transactionId.toString().includes(transactionIdSearch)
     );
 
     const offset = currentPage * itemsPerPage;
@@ -98,6 +126,47 @@ const UserManagement = ({ subscriptions }) => {
                             </div>
                             <div className="mb-4">
                                 <p className="text-lg"><strong>Status:</strong> {selectedUser.status}</p>
+                            </div>
+                        </div>
+                        <div className="width-600 bg-gray-100 p-6 rounded shadow-md mt-6">
+                            <h2 className="text-3xl font-bold mb-6 text-center">Subscription History</h2>
+                            <div className="mb-4 flex justify-between space-x-4">
+                                <input
+                                    type="text"
+                                    placeholder="Search by Transaction ID"
+                                    value={transactionIdSearch}
+                                    onChange={handleTransactionIdSearchChange}
+                                    className="px-4 py-2 border rounded w-full"
+                                />
+                                <input
+                                    type="text"
+                                    placeholder="Search by Subscription Name"
+                                    value={subscriptionSearch}
+                                    onChange={handleSubscriptionSearchChange}
+                                    className="px-4 py-2 border rounded w-full"
+                                />
+                            </div>
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full bg-white border border-gray-300 rounded-lg">
+                                    <thead>
+                                        <tr>
+                                            <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Transaction ID</th>
+                                            <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Subscription Name</th>
+                                            <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Start Date</th>
+                                            <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">End Date</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredSubscriptionHistory.map((history) => (
+                                            <tr key={history.transactionId} className="hover:bg-gray-50">
+                                                <td className="py-2 px-4 border-b border-gray-300">{history.transactionId}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{history.subscriptionName}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{history.startDate}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{history.endDate}</td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </table>
                             </div>
                         </div>
                     </div>

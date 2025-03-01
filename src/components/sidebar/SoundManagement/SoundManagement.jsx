@@ -41,6 +41,13 @@ const mockSounds = [
     category: "Focus",
     status: "Premium",
   },
+  {
+    id: 6,
+    title: "City Ambiance",
+    description: "Sounds of a bustling city",
+    category: "Urban",
+    status: "Standard",
+  },
 ]
 
 const mockCategories = [
@@ -53,12 +60,15 @@ const mockCategories = [
 export default function SoundManagement() {
   const [currentView, setCurrentView] = useState("main")
   const [selectedSound, setSelectedSound] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
+  const [sounds, setSounds] = useState(mockSounds)
+  const [searchFilters, setSearchFilters] = useState({ serial: "", title: "", category: "", status: "" })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
   const [isSelectOpen, setIsSelectOpen] = useState(false)
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("All")
   const [filteredSounds, setFilteredSounds] = useState(mockSounds)
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
   const selectRef = useRef(null)
 
   // Close select dropdown when clicking outside
@@ -76,30 +86,48 @@ export default function SoundManagement() {
 
   // Filter sounds based on search term
   useEffect(() => {
-    const filtered = mockSounds.filter(
-      (sound) =>
-        (sound.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          sound.category.toLowerCase().includes(searchTerm.toLowerCase())) &&
-        (selectedCategoryFilter === "All" || sound.category === selectedCategoryFilter),
+    const filtered = sounds.filter(
+      (sound, index) =>
+        (index + 1).toString().includes(searchFilters.serial) &&
+        sound.title.toLowerCase().includes(searchFilters.title.toLowerCase()) &&
+        (selectedCategoryFilter === "All" || sound.category === selectedCategoryFilter) &&
+        sound.category.toLowerCase().includes(searchFilters.category.toLowerCase()) &&
+        sound.status.toLowerCase().includes(searchFilters.status.toLowerCase())
     )
     setFilteredSounds(filtered)
-  }, [searchTerm, selectedCategoryFilter])
+    setCurrentPage(1) // Reset to first page on filter change
+  }, [searchFilters, selectedCategoryFilter, sounds])
 
   const handleDeleteConfirm = () => {
     if (itemToDelete) {
-      const updatedSounds = mockSounds.filter((sound) => sound.id !== itemToDelete.id)
-      // In a real app, you would update the database here
-      console.log(`Deleted sound with ID: ${itemToDelete.id}`)
-      // Update the filteredSounds state
+      const updatedSounds = sounds.filter((sound) => sound.id !== itemToDelete.id)
+      setSounds(updatedSounds)
       setFilteredSounds(updatedSounds)
     }
     setShowDeleteConfirm(false)
     setItemToDelete(null)
   }
 
-  const renderMainView = () => (
-    <div className="grid grid-cols-1 gap-6">
-      <div className="p-6">
+  const handleSoundSave = (newSound) => {
+    if (selectedSound) {
+      const updatedSounds = sounds.map((sound) => (sound.id === newSound.id ? newSound : sound))
+      setSounds(updatedSounds)
+    } else {
+      newSound.id = sounds.length + 1
+      const updatedSounds = [...sounds, newSound]
+      setSounds(updatedSounds)
+    }
+    setCurrentView("main")
+  }
+
+  const renderMainView = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedSounds = filteredSounds.slice(startIndex, endIndex)
+    const totalPages = Math.ceil(filteredSounds.length / itemsPerPage)
+    
+    return (
+      <div className="grid grid-cols-1 gap-6">
         <div className="flex justify-end">
           <button
             className="w-400 py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md text-white transition-colors text-sm font-medium"
@@ -110,156 +138,175 @@ export default function SoundManagement() {
             Add New Sound
           </button>
         </div>
-      </div>
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
-        <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
-          <h3 className="text-xl font-bold">Sounds</h3>
-          <p className="text-gray-500 mt-1">List of sounds</p>
-        </div>
-        <div className="p-6">
-          <div className="relative mb-6">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by title or category..."
-              className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
+        <div className="bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-shadow overflow-x-auto">
+          <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+            <h3 className="text-xl font-bold">Sounds</h3>
+            <p className="text-gray-500 mt-1">List of sounds</p>
           </div>
-
-          <div className="relative mb-6">
-            <button
-              type="button"
-              className="inline-flex w-full justify-between items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
-              onClick={() => setIsSelectOpen(!isSelectOpen)}
-              ref={selectRef}
-            >
-              {selectedCategoryFilter}
-              <ChevronDown className="h-4 w-4 ml-2" />
-            </button>
-            {isSelectOpen && (
-              <div className="absolute right-0 mt-1 w-full origin-top-right rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                <div className="py-1">
-                  <button
-                    className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                    onClick={() => {
-                      setSelectedCategoryFilter("All")
-                      setIsSelectOpen(false)
-                    }}
-                  >
-                    All Categories
-                  </button>
-                  {mockCategories.map((category) => (
-                    <button
-                      key={category.id}
-                      className="text-gray-700 block px-4 py-2 text-sm w-full text-left hover:bg-gray-100"
-                      onClick={() => {
-                        setSelectedCategoryFilter(category.name)
-                        setIsSelectOpen(false)
-                      }}
-                    >
-                      {category.name}
-                    </button>
-                  ))}
-                </div>
+          <div className="p-6">
+            <div className="relative mb-6 grid grid-cols-4 gap-4 min-w-full">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by serial no..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.serial}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, serial: e.target.value })}
+                />
               </div>
-            )}
-          </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by title..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.title}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, title: e.target.value })}
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by category..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.category}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, category: e.target.value })}
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by status..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.status}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, status: e.target.value })}
+                />
+              </div>
+            </div>
 
-          <div className="rounded-md border border-gray-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Sr No.
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Title
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell"
-                  >
-                    Category
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell"
-                  >
-                    Status
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredSounds.length === 0 ? (
+            <div className="rounded-md border border-gray-200 overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td colSpan={5} className="px-6 py-6 text-center text-gray-500">
-                      No sounds found matching your search
-                    </td>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Sr No.
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Title
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Category
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Status
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  filteredSounds.map((sound, index) => (
-                    <tr key={sound.id}>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        {index + 1}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{sound.title}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 hidden md:table-cell">{sound.category}</td>
-                      <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
-                        <span
-                          className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                            sound.status === "Premium" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
-                          }`}
-                        >
-                          {sound.status}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            onClick={() => {
-                              setSelectedSound(sound)
-                              setCurrentView("updateSound")
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                            onClick={() => {
-                              setItemToDelete(sound)
-                              setShowDeleteConfirm(true)
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedSounds.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-6 text-center text-gray-500">
+                        No sounds found matching your search
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    paginatedSounds.map((sound, index) => (
+                      <tr key={sound.id}>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          {index + 1 + (currentPage - 1) * itemsPerPage}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{sound.title}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{sound.category}</td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${sound.status === "Premium" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
+                              }`}
+                          >
+                            {sound.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              onClick={() => {
+                                setSelectedSound(sound)
+                                setCurrentView("updateSound")
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              onClick={() => {
+                                setItemToDelete(sound)
+                                setShowDeleteConfirm(true)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+              <div className="flex justify-end mt-4">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}`}
+                  >
+                    Previous
+                  </button>
+                  {[...Array(totalPages).keys()].map(page => (
+                    <button
+                      key={page + 1}
+                      onClick={() => setCurrentPage(page + 1)}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === page + 1 ? 'bg-gray-100 text-gray-700' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      {page + 1}
+                    </button>
+                  ))}
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}`}
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
   const DeleteConfirmModal = () => {
     if (!showDeleteConfirm) return null
@@ -315,11 +362,11 @@ export default function SoundManagement() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">Sounds Management Module</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Sounds Management</h1>
 
       {currentView === "main" && renderMainView()}
-      {currentView === "addSound" && <AddOrUpdateSound setCurrentView={setCurrentView} />}
-      {currentView === "updateSound" && <AddOrUpdateSound setCurrentView={setCurrentView} selectedSound={selectedSound} />}
+      {currentView === "addSound" && <AddOrUpdateSound setCurrentView={setCurrentView} onSave={handleSoundSave} buttonText="Add Sound" />}
+      {currentView === "updateSound" && <AddOrUpdateSound setCurrentView={setCurrentView} selectedSound={selectedSound} onSave={handleSoundSave} buttonText="Save Sound" />}
 
       <DeleteConfirmModal />
     </div>

@@ -11,10 +11,6 @@ function Navbar() {
           <img src={logo} alt="Logo" className="h-8 w-8 mr-2" />
           <img src={companyname} alt="Company Name" className="h-8 w-60" />
         </div>
-        <div className="flex items-center space-x-4">
-          <FaSearch className="text-white text-lg cursor-pointer" />
-          <FaUser className="text-white text-lg cursor-pointer" />
-        </div>
       </div>
     </nav>
   );

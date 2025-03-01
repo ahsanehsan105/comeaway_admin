@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import Navbar from '../pages/navbar/Navbar';
 import Sidebar from './sidebar/Sidebar';
 import Dashboard from './sidebar/dashboard/Dashboard';
-import Categories from './sidebar/Categories/Categories';
+// import Categories from './sidebar/Categories/Categories';
 import SoundManagement from './sidebar/SoundManagement/SoundManagement';
-import SubscriptionManagement from './sidebar/SubscriptionManagement/SubscriptionManagement';
+// import SubscriptionManagement from './sidebar/SubscriptionManagement/SubscriptionManagement';
 import UserManagement from './sidebar/UserManagement/UserManagement';
 import Settings from './sidebar/Settings/Settings';
 import CategoryManagement from './sidebar/CategoryManagment/CategoryManagement';
@@ -24,8 +24,8 @@ function Home() {
         return <CategoryManagement />;
       case 'SoundManagement':
         return <SoundManagement />;
-      case 'Subscription':
-        return <SubscriptionManagement />;
+      // case 'Subscription':
+      //   return <SubscriptionManagement />;
       case 'UserManagement':
         return <UserManagement />;
       case 'Settings':

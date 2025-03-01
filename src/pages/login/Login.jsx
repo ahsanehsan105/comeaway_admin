@@ -2,23 +2,31 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import logo from '../../assets/logo.png';
 import companyname from '../../assets/companyname.png';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
-function Login({ onLogin }){
-    const navigate = useNavigate();
-    const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
+function Login({ onLogin }) {
+  const navigate = useNavigate();
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
   
-    const handleSignIn = (e) => {
-      e.preventDefault();
-      if (email === 'admin@gmail.com' && password === 'admin') {
-          onLogin();
-          navigate('/');
-      } else {
-          toast.error('Invalid email or password');
-      }
-    };
+  const handleSignIn = (e) => {
+    e.preventDefault();
+    if (email === 'admin@gmail.com' && password === 'admin') {
+      toast.success('Login Successful');
+      onLogin();
+      
+      setTimeout(() => {
+        navigate('/');
+      }, 1000); // Delay navigation to allow the toast to show
+    } else {
+      toast.error('Invalid email or password');
+    }
+  };
   
-    return (
+
+  return (
+    <>
       <div className="flex items-center justify-center min-h-screen bg-white">
         <div className="bg-gray-800 p-8 rounded shadow-md w-full max-w-md">
           <div className="flex justify-center mb-6 gap-2">
@@ -64,7 +72,9 @@ function Login({ onLogin }){
           </form>
         </div>
       </div>
-    );
+      <ToastContainer />
+    </>
+  );
 }
 
 export default Login;

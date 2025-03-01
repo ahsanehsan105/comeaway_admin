@@ -38,13 +38,13 @@ function Sidebar({ onMenuItemClick }) {
           </button>
         )}
       </div>
-      <nav className="mt-2 w-full">
+      <nav className="mt-10 w-full">
         <ul>
           {[
             { name: 'Dashboard', icon: <LuLayoutDashboard size={20} /> },
             { name: 'Categories', icon: <CgList size={20} /> },
             { name: 'SoundManagement', icon: <TbMusicCog size={20} /> },
-            { name: 'Subscription', icon: <FaRegCreditCard size={20} /> },
+            // { name: 'Subscription', icon: <FaRegCreditCard size={20} /> },
             { name: 'UserManagement', icon: <FaUser size={20} /> },
             { name: 'Settings', icon: <IoSettings size={20} /> },
           ].map((item) => (

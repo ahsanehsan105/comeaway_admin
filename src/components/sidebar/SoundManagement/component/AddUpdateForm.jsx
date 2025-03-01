@@ -7,10 +7,9 @@ const mockCategories = [
   { id: 1, name: "Nature", description: "Natural sounds from the environment", count: 2 },
   { id: 2, name: "Weather", description: "Weather related sounds", count: 1 },
   { id: 3, name: "Meditation", description: "Sounds for meditation and relaxation", count: 1 },
-  { id: 4, name: "Focus", description: "Sounds to improve concentration", count: 1 },
 ]
 
-export default function AddOrUpdateSound({ setCurrentView, selectedSound = null }) {
+export default function AddOrUpdateSound({ setCurrentView, selectedSound = null, onSave, buttonText }) {
   const [soundPreview, setSoundPreview] = useState(null)
   const [thumbnailPreview, setThumbnailPreview] = useState(null)
 
@@ -36,6 +35,21 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
     }
   }
 
+  const handleSubmit = (event) => {
+    event.preventDefault()
+    const formData = new FormData(event.target)
+    const newSound = {
+      id: selectedSound ? selectedSound.id : null,
+      title: formData.get("title"),
+      description: formData.get("description"),
+      category: formData.get("category"),
+      status: formData.get("status"),
+      soundFile: soundPreview,
+      thumbnail: thumbnailPreview,
+    }
+    onSave(newSound)
+  }
+
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-md">
       <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
@@ -53,13 +67,14 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
         </div>
       </div>
       <div className="p-6">
-        <form className="space-y-6">
+        <form className="space-y-6" onSubmit={handleSubmit}>
           <div className="space-y-2">
             <label htmlFor="title" className="block text-sm font-medium text-gray-700">
               Sound Title
             </label>
             <input
               id="title"
+              name="title"
               type="text"
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter sound title"
@@ -73,6 +88,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
             </label>
             <textarea
               id="description"
+              name="description"
               className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
               placeholder="Enter sound description"
               rows={3}
@@ -113,6 +129,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
                   </div>
                   <input
                     id="sound-file"
+                    name="soundFile"
                     type="file"
                     className="hidden"
                     accept=".mp3,.wav,.ogg"
@@ -161,6 +178,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
                   </div>
                   <input
                     id="thumbnail"
+                    name="thumbnail"
                     type="file"
                     className="hidden"
                     accept="image/*"
@@ -189,6 +207,8 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
                     <div className="flex h-5 items-center">
                       <input
                         id={`category-${category.id}`}
+                        name="category"
+                        value={category.name}
                         type="checkbox"
                         defaultChecked={selectedSound?.category === category.name}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
@@ -213,6 +233,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
                   id="standard"
                   name="status"
                   type="radio"
+                  value="Standard"
                   defaultChecked={!selectedSound || selectedSound?.status === "Standard"}
                   className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
@@ -225,6 +246,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
                   id="premium"
                   name="status"
                   type="radio"
+                  value="Premium"
                   defaultChecked={selectedSound?.status === "Premium"}
                   className="h-4 w-4 border-gray-300 text-blue-600 focus:ring-blue-500"
                 />
@@ -234,25 +256,24 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null 
               </div>
             </div>
           </div>
+
+          <div className="p-6 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end gap-2">
+            <button
+              type="button"
+              className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              onClick={() => setCurrentView("main")}
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              style={{ backgroundColor: '#439AB8' }}
+            >
+              {buttonText}
+            </button>
+          </div>
         </form>
-      </div>
-      <div className="p-6 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end gap-2">
-        <button
-          className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={() => setCurrentView("main")}
-        >
-          Cancel
-        </button>
-        <button
-          className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={() => {
-            // In a real app, you would save the form data
-            setCurrentView("main")
-          }}
-          style={{ backgroundColor: '#439AB8' }}
-        >
-          Save Sound
-        </button>
       </div>
     </div>
   )

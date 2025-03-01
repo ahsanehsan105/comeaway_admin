@@ -5,216 +5,320 @@ import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react"
 
 // Mock data for demonstration
 const mockCategories = [
-  { id: 1, name: "Nature", description: "Natural sounds from the environment", count: 2 },
-  { id: 2, name: "Weather", description: "Weather related sounds", count: 1 },
-  { id: 3, name: "Meditation", description: "Sounds for meditation and relaxation", count: 1 },
-  { id: 4, name: "Focus", description: "Sounds to improve concentration", count: 1 },
+  { id: 1, name: "Nature", slug: "nature", count: 2 },
+  { id: 2, name: "Weather", slug: "weather", count: 1 },
+  { id: 3, name: "Meditation", slug: "meditation", count: 1 },
+  { id: 4, name: "Music", slug: "music", count: 3 },
+  { id: 5, name: "Sports", slug: "sports", count: 2 },
+  { id: 6, name: "Technology", slug: "technology", count: 5 },
 ]
 
 export default function CategoryManagement() {
   const [currentView, setCurrentView] = useState("main")
   const [selectedCategory, setSelectedCategory] = useState(null)
-  const [searchTerm, setSearchTerm] = useState("")
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
   const [filteredCategories, setFilteredCategories] = useState(mockCategories)
+  const [categories, setCategories] = useState(mockCategories)
+  const [searchFilters, setSearchFilters] = useState({ serial: "", name: "", slug: "", count: "" })
+  const [currentPage, setCurrentPage] = useState(1)
+  const itemsPerPage = 5
   const selectRef = useRef(null)
 
-  // Filter categories based on search term
   useEffect(() => {
-    const filtered = mockCategories.filter((category) => category.name.toLowerCase().includes(searchTerm.toLowerCase()))
+    const filtered = categories.filter((category, index) => 
+      (index + 1).toString().includes(searchFilters.serial) &&
+      category.name.toLowerCase().includes(searchFilters.name.toLowerCase()) &&
+      category.slug.toLowerCase().includes(searchFilters.slug.toLowerCase()) &&
+      category.count.toString().includes(searchFilters.count)
+    )
     setFilteredCategories(filtered)
-  }, [searchTerm])
+    setCurrentPage(1) // Reset to first page on filter change
+  }, [searchFilters, categories])
 
   const handleDeleteConfirm = () => {
     if (itemToDelete) {
-      const updatedCategories = mockCategories.filter((category) => category.id !== itemToDelete.id)
-      // In a real app, you would update the database here
+      const updatedCategories = categories.filter((category) => category.id !== itemToDelete.id)
       console.log(`Deleted category with ID: ${itemToDelete.id}`)
-      // Update the filteredCategories state
-      setFilteredCategories(updatedCategories)
+      setCategories(updatedCategories)
     }
     setShowDeleteConfirm(false)
     setItemToDelete(null)
   }
 
-  const renderMainView = () => (
-    <div className="grid grid-cols-1 gap-6">
-      <div className="flex justify-end">
-        <button
-          className="w-400 py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md text-white transition-colors text-sm font-medium"
-          onClick={() => {
-            setSelectedCategory(null)
-            setCurrentView("updateCategory")
-          }}
-          style={{ backgroundColor: '#439AB8' }}
-        >
-          <Plus className="h-5 w-5" />
-          Add New Category
-        </button>
-      </div>
+  const handleCategorySave = (category) => {
+    const updatedCategories = selectedCategory 
+      ? categories.map(cat => cat.id === category.id ? category : cat)
+      : [...categories, { ...category, id: categories.length + 1, count: 0 }]
+    setCategories(updatedCategories)
+  }
 
-      <div className="bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-shadow">
-        <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
-          <h3 className="text-xl font-bold">Categories</h3>
-          <p className="text-gray-500 mt-1">List of categories</p>
+  const renderMainView = () => {
+    const startIndex = (currentPage - 1) * itemsPerPage
+    const endIndex = startIndex + itemsPerPage
+    const paginatedCategories = filteredCategories.slice(startIndex, endIndex)
+    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage)
+    
+    return (
+      <div className="grid grid-cols-1 gap-6">
+        <div className="flex justify-end">
+          <button
+            className="w-400 py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md text-white transition-colors text-sm font-medium"
+            onClick={() => {
+              setSelectedCategory(null)
+              setCurrentView("updateCategory")
+            }}
+            style={{ backgroundColor: '#439AB8' }}
+          >
+            <Plus className="h-5 w-5" />
+            Add New Category
+          </button>
         </div>
-        <div className="p-6">
-          <div className="relative mb-6">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
-            <input
-              type="text"
-              placeholder="Search by category name..."
-              className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-            />
-          </div>
 
-          <div className="rounded-md border border-gray-200 overflow-hidden">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Name
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell"
-                  >
-                    Description
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell"
-                  >
-                    Sound Count
-                  </th>
-                  <th
-                    scope="col"
-                    className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
-                  >
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {filteredCategories.length === 0 ? (
+        <div className="bg-white rounded-lg border border-gray-200 shadow-md hover:shadow-lg transition-shadow overflow-x-auto">
+          <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+            <h3 className="text-xl font-bold">Categories</h3>
+            <p className="text-gray-500 mt-1">List of categories</p>
+          </div>
+          <div className="p-6">
+            <div className="relative mb-6 grid grid-cols-4 gap-4 min-w-full">
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by serial no..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.serial}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, serial: e.target.value })}
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by category name..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.name}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, name: e.target.value })}
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by category slug..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.slug}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, slug: e.target.value })}
+                />
+              </div>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
+                <input
+                  type="text"
+                  placeholder="Search by assigned sound..."
+                  className="pl-8 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                  value={searchFilters.count}
+                  onChange={(e) => setSearchFilters({ ...searchFilters, count: e.target.value })}
+                />
+              </div>
+            </div>
+
+            <div className="rounded-md border border-gray-200 overflow-x-auto">
+              <table className="min-w-full divide-y divide-gray-200">
+                <thead className="bg-gray-50">
                   <tr>
-                    <td colSpan={4} className="px-6 py-6 text-center text-gray-500">
-                      No categories found matching your search
-                    </td>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Serial No.
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Category Name
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Category Slug
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Assigned Sound
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider"
+                    >
+                      Actions
+                    </th>
                   </tr>
-                ) : (
-                  filteredCategories.map((category) => (
-                    <tr key={category.id}>
-                      <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{category.name}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 hidden md:table-cell">
-                        {category.description}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-gray-500 hidden md:table-cell">{category.count}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <div className="flex justify-end gap-2">
-                          <button
-                            className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                            onClick={() => {
-                              setSelectedCategory(category)
-                              setCurrentView("updateCategory")
-                            }}
-                          >
-                            <Edit className="h-4 w-4" />
-                          </button>
-                          <button
-                            className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                            onClick={() => {
-                              setItemToDelete(category)
-                              setShowDeleteConfirm(true)
-                            }}
-                          >
-                            <Trash2 className="h-4 w-4" />
-                          </button>
-                        </div>
+                </thead>
+                <tbody className="bg-white divide-y divide-gray-200">
+                  {paginatedCategories.length === 0 ? (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-6 text-center text-gray-500">
+                        No categories found matching your search
                       </td>
                     </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
+                  ) : (
+                    paginatedCategories.map((category) => (
+                      <tr key={category.id}>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{categories.findIndex(cat => cat.id === category.id) + 1}</td>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{category.name}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{category.slug}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{category.count}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <div className="flex justify-end gap-2">
+                            <button
+                              className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                              onClick={() => {
+                                setSelectedCategory(category)
+                                setCurrentView("updateCategory")
+                              }}
+                            >
+                              <Edit className="h-4 w-4" />
+                            </button>
+                            <button
+                              className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                              onClick={() => {
+                                setItemToDelete(category)
+                                setShowDeleteConfirm(true)
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    ))
+                  )}
+                </tbody>
+              </table>
+              <div className="flex justify-end mt-4">
+                <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px" aria-label="Pagination">
+                  <button
+                    disabled={currentPage === 1}
+                    onClick={() => setCurrentPage(currentPage - 1)}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 bg-white text-sm font-medium ${currentPage === 1 ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}`}
+                  >
+                    Previous
+                  </button>
+                  {[...Array(totalPages).keys()].map(page => (
+                    <button
+                      key={page + 1}
+                      onClick={() => setCurrentPage(page + 1)}
+                      className={`relative inline-flex items-center px-4 py-2 border border-gray-300 bg-white text-sm font-medium ${currentPage === page + 1 ? 'bg-gray-100 text-gray-700' : 'text-gray-700 hover:bg-gray-50'}`}
+                    >
+                      {page + 1}
+                    </button>
+                  ))}
+                  <button
+                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage(currentPage + 1)}
+                    className={`relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 bg-white text-sm font-medium ${currentPage === totalPages ? 'text-gray-300' : 'text-gray-500 hover:bg-gray-50'}`}
+                  >
+                    Next
+                  </button>
+                </nav>
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  )
+    )
+  }
 
-  const renderUpdateCategory = () => (
-    <div className="bg-white rounded-lg border border-gray-200 shadow-md">
-      <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
-        <div className="flex items-center">
-          <button
-            className="mr-2 p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
-            onClick={() => setCurrentView("main")}
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </button>
-          <div>
-            <h3 className="text-xl font-bold">{selectedCategory ? "Update Category" : "Add New Category"}</h3>
-            <p className="text-gray-500 mt-1">Fill in the details below</p>
+  const renderUpdateCategory = () => {
+    const handleSubmit = (e) => {
+      e.preventDefault()
+      const form = e.target
+      const newCategory = {
+        id: selectedCategory ? selectedCategory.id : categories.length + 1,
+        name: form.categoryName.value,
+        slug: form.categorySlug.value,
+        count: selectedCategory ? selectedCategory.count : 0,
+      }
+      handleCategorySave(newCategory)
+      setCurrentView("main")
+    }
+
+    return (
+      <div className="bg-white rounded-lg border border-gray-200 shadow-md">
+        <div className="p-6 bg-gray-50 border-b border-gray-200 rounded-t-lg">
+          <div className="flex items-center">
+            <button
+              className="mr-2 p-2 rounded-full hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-300"
+              onClick={() => setCurrentView("main")}
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <h3 className="text-xl font-bold">{selectedCategory ? "Update Category" : "Add New Category"}</h3>
+              <p className="text-gray-500 mt-1">Fill in the details below</p>
+            </div>
           </div>
         </div>
-      </div>
-      <div className="p-6">
-        <form className="space-y-6">
-          <div className="space-y-2">
-            <label htmlFor="category-name" className="block text-sm font-medium text-gray-700">
-              Category Name
-            </label>
-            <input
-              id="category-name"
-              type="text"
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter category name"
-              defaultValue={selectedCategory?.name || ""}
-            />
-          </div>
+        <div className="p-6">
+          <form className="space-y-6" onSubmit={handleSubmit}>
+            <div className="space-y-2">
+              <label htmlFor="category-name" className="block text-sm font-medium text-gray-700">
+                Category Name
+              </label>
+              <input
+                id="category-name"
+                name="categoryName"
+                type="text"
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter category name"
+                defaultValue={selectedCategory?.name || ""}
+                required
+              />
+            </div>
 
-          <div className="space-y-2">
-            <label htmlFor="category-description" className="block text-sm font-medium text-gray-700">
-              Category Description
-            </label>
-            <textarea
-              id="category-description"
-              className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
-              placeholder="Enter category description"
-              rows={3}
-              defaultValue={selectedCategory?.description || ""}
-            />
-          </div>
-        </form>
-      </div>
-      <div className="p-6 bg-gray-50 border-t border-gray-200 rounded-b-lg flex justify-end gap-2">
-        <button
-          className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={() => setCurrentView("main")}
-        >
-          Cancel
-        </button>
-        <button
-          className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-          onClick={() => {
-            setCurrentView("main")
-          }}
-          style={{ backgroundColor: '#439AB8' }}
-        >
-          {selectedCategory ? "Save Category" : "Add Category"}
-        </button>
-      </div>
-    </div>
-  )
+            <div className="space-y-2">
+              <label htmlFor="category-slug" className="block text-sm font-medium text-gray-700">
+                Category Slug
+              </label>
+              <input
+                id="category-slug"
+                name="categorySlug"
+                type="text"
+                className="mt-1 block w-full px-3 py-2 bg-white border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+                placeholder="Enter category slug"
+                defaultValue={selectedCategory?.slug || ""}
+                required
+              />
+            </div>
 
-  // Delete confirmation modal
+            <div className="flex justify-end gap-2">
+              <button
+                type="button"
+                className="py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                onClick={() => setCurrentView("main")}
+              >
+                Cancel
+              </button>
+              <button
+                type="submit"
+                className="py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                style={{ backgroundColor: '#439AB8' }}
+              >
+                {selectedCategory ? "Save Category" : "Add Category"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    )
+  }
+
   const DeleteConfirmModal = () => {
     if (!showDeleteConfirm) return null
 
@@ -269,7 +373,7 @@ export default function CategoryManagement() {
 
   return (
     <div className="container mx-auto py-8 px-4">
-      <h1 className="text-3xl font-bold mb-8 text-center">Categories Management Module</h1>
+      <h1 className="text-3xl font-bold mb-8 text-center">Categories Management</h1>
 
       {currentView === "main" && renderMainView()}
       {currentView === "updateCategory" && renderUpdateCategory()}
