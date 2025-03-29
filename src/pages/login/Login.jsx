@@ -1,29 +1,38 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+
 import logo from '../../assets/logo.png';
 import companyname from '../../assets/companyname.png';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthContext } from '../../context/authContext';
+import { login } from '../../utils/API_SERVICE';
 
-function Login({ onLogin }) {
+function Login() {
   const navigate = useNavigate();
+  const { login: authLogin } = useContext(AuthContext);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  
-  const handleSignIn = (e) => {
+
+  const handleSignIn = async (e) => {
     e.preventDefault();
-    if (email === 'admin@gmail.com' && password === 'admin') {
+    try {
+      const response = await login(email, password);
+      if (response.user.role !== 'admin') {
+        toast.error('Access Denied: Only admins can log in');
+        return;
+      }
       toast.success('Login Successful');
-      onLogin();
-      
+      authLogin(response.token, response.user); // Assuming the response contains token and user data
+      console.log(response.token, response.user);
+  
       setTimeout(() => {
         navigate('/');
       }, 1000); // Delay navigation to allow the toast to show
-    } else {
+    } catch (error) {
       toast.error('Invalid email or password');
     }
   };
-  
 
   return (
     <>

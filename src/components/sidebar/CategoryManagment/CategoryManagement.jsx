@@ -1,72 +1,86 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
-import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react"
-
-// Mock data for demonstration
-const mockCategories = [
-  { id: 1, name: "Nature", slug: "nature", count: 2 },
-  { id: 2, name: "Weather", slug: "weather", count: 1 },
-  { id: 3, name: "Meditation", slug: "meditation", count: 1 },
-  { id: 4, name: "Music", slug: "music", count: 3 },
-  { id: 5, name: "Sports", slug: "sports", count: 2 },
-  { id: 6, name: "Technology", slug: "technology", count: 5 },
-]
+import { useState, useRef, useEffect, useContext } from "react";
+import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
+import { createCategory, deleteCategory, getCategories, updateCategory } from '../../../utils/API_SERVICE';
+import { AuthContext } from '../../../context/authContext';
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 export default function CategoryManagement() {
-  const [currentView, setCurrentView] = useState("main")
-  const [selectedCategory, setSelectedCategory] = useState(null)
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [itemToDelete, setItemToDelete] = useState(null)
-  const [filteredCategories, setFilteredCategories] = useState(mockCategories)
-  const [categories, setCategories] = useState(mockCategories)
-  const [searchFilters, setSearchFilters] = useState({ serial: "", name: "", slug: "", count: "" })
-  const [currentPage, setCurrentPage] = useState(1)
-  const itemsPerPage = 5
-  const selectRef = useRef(null)
+  const { accessToken } = useContext(AuthContext);
+  const [currentView, setCurrentView] = useState("main");
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const [filteredCategories, setFilteredCategories] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [searchFilters, setSearchFilters] = useState({ serial: "", name: "", slug: "", count: "" });
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5;
+  const selectRef = useRef(null);
 
   useEffect(() => {
-    const filtered = categories.filter((category, index) => 
+    async function fetchCategories() {
+      try {
+        const categoriesData = await getCategories(accessToken);
+        setCategories(categoriesData);
+        setFilteredCategories(categoriesData);
+      } catch (error) {
+        toast.error('Error fetching categories');
+      }
+    }
+    fetchCategories();
+  }, [accessToken]);
+
+  useEffect(() => {
+    const filtered = categories.filter((category, index) =>
       (index + 1).toString().includes(searchFilters.serial) &&
       category.name.toLowerCase().includes(searchFilters.name.toLowerCase()) &&
-      category.slug.toLowerCase().includes(searchFilters.slug.toLowerCase()) &&
-      category.count.toString().includes(searchFilters.count)
-    )
-    setFilteredCategories(filtered)
-    setCurrentPage(1) // Reset to first page on filter change
-  }, [searchFilters, categories])
+      category.slug.toLowerCase().includes(searchFilters.slug.toLowerCase())
+    );
+    setFilteredCategories(filtered);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [searchFilters, categories]);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (itemToDelete) {
-      const updatedCategories = categories.filter((category) => category.id !== itemToDelete.id)
-      console.log(`Deleted category with ID: ${itemToDelete.id}`)
-      setCategories(updatedCategories)
+      try {
+        await deleteCategory(itemToDelete._id, accessToken);
+        toast.success(`Deleted category with ID: ${itemToDelete.name}`);
+        const updatedCategories = categories.filter((category) => category._id !== itemToDelete._id);
+        setCategories(updatedCategories);
+        setFilteredCategories(updatedCategories);
+      } catch (error) {
+        toast.error('Error deleting category');
+      }
     }
-    setShowDeleteConfirm(false)
-    setItemToDelete(null)
-  }
+    setShowDeleteConfirm(false);
+    setItemToDelete(null);
+  };
 
   const handleCategorySave = (category) => {
-    const updatedCategories = selectedCategory 
-      ? categories.map(cat => cat.id === category.id ? category : cat)
-      : [...categories, { ...category, id: categories.length + 1, count: 0 }]
-    setCategories(updatedCategories)
-  }
+    const updatedCategories = selectedCategory
+      ? categories.map(cat => cat._id === category._id ? category : cat)
+      : [...categories, { ...category, id: categories.length + 1, count: 0 }];
+    setCategories(updatedCategories);
+    setFilteredCategories(updatedCategories);
+  };
 
   const renderMainView = () => {
-    const startIndex = (currentPage - 1) * itemsPerPage
-    const endIndex = startIndex + itemsPerPage
-    const paginatedCategories = filteredCategories.slice(startIndex, endIndex)
-    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage)
-    
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedCategories = filteredCategories.slice(startIndex, endIndex);
+    const totalPages = Math.ceil(filteredCategories.length / itemsPerPage);
+
     return (
       <div className="grid grid-cols-1 gap-6">
         <div className="flex justify-end">
           <button
             className="w-400 py-3 px-4 inline-flex justify-center items-center gap-2 rounded-md text-white transition-colors text-sm font-medium"
             onClick={() => {
-              setSelectedCategory(null)
-              setCurrentView("updateCategory")
+              setSelectedCategory(null);
+              setCurrentView("updateCategory");
             }}
             style={{ backgroundColor: '#439AB8' }}
           >
@@ -169,18 +183,17 @@ export default function CategoryManagement() {
                     </tr>
                   ) : (
                     paginatedCategories.map((category) => (
-                      <tr key={category.id}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{categories.findIndex(cat => cat.id === category.id) + 1}</td>
+                      <tr key={category._id}>
+                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{categories.findIndex(cat => cat._id === category._id) + 1}</td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{category.name}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-gray-500">{category.slug}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{category.count}</td>
                         <td className="px-6 py-4 whitespace-nowrap text-right">
                           <div className="flex justify-end gap-2">
                             <button
                               className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
                               onClick={() => {
-                                setSelectedCategory(category)
-                                setCurrentView("updateCategory")
+                                setSelectedCategory(category);
+                                setCurrentView("updateCategory");
                               }}
                             >
                               <Edit className="h-4 w-4" />
@@ -188,8 +201,8 @@ export default function CategoryManagement() {
                             <button
                               className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
                               onClick={() => {
-                                setItemToDelete(category)
-                                setShowDeleteConfirm(true)
+                                setItemToDelete(category);
+                                setShowDeleteConfirm(true);
                               }}
                             >
                               <Trash2 className="h-4 w-4" />
@@ -236,18 +249,38 @@ export default function CategoryManagement() {
   }
 
   const renderUpdateCategory = () => {
-    const handleSubmit = (e) => {
-      e.preventDefault()
-      const form = e.target
-      const newCategory = {
-        id: selectedCategory ? selectedCategory.id : categories.length + 1,
-        name: form.categoryName.value,
-        slug: form.categorySlug.value,
-        count: selectedCategory ? selectedCategory.count : 0,
+    const handleSubmit = async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const name = form.categoryName.value;
+      const slug = form.categorySlug.value;
+
+      try {
+        if (selectedCategory) {
+          await updateCategory(selectedCategory._id, name, slug, accessToken);
+          toast.success('Category updated successfully');
+          const updatedCategory = {
+            ...selectedCategory,
+            name,
+            slug,
+          };
+          handleCategorySave(updatedCategory);
+        } else {
+          await createCategory(name, slug, accessToken);
+          toast.success('Category created successfully');
+          const newCategory = {
+            id: categories.length + 1,
+            name,
+            slug,
+            count: 0,
+          };
+          handleCategorySave(newCategory);
+        }
+        setCurrentView("main");
+      } catch (error) {
+        toast.error(`Error ${selectedCategory ? 'updating' : 'creating'} category`);
       }
-      handleCategorySave(newCategory)
-      setCurrentView("main")
-    }
+    };
 
     return (
       <div className="bg-white rounded-lg border border-gray-200 shadow-md">
@@ -379,6 +412,7 @@ export default function CategoryManagement() {
       {currentView === "updateCategory" && renderUpdateCategory()}
 
       <DeleteConfirmModal />
+      <ToastContainer />
     </div>
   )
 }

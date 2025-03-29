@@ -1,19 +1,37 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { FaPencilAlt } from 'react-icons/fa';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { AuthContext } from '../../../context/authContext';
+import { getUserById, updateAdminDetails } from '../../../utils/API_SERVICE';
+
 
 const Settings = () => {
-    const dummyProfile = {
-        profileImage: 'https://via.placeholder.com/150',
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'john.doe@example.com',
-    };
+    const { accessToken, user } = useContext(AuthContext);
 
-    const [profile, setProfile] = useState(dummyProfile);
+    const [profile, setProfile] = useState({});
     const [password, setPassword] = useState('');
+console.log(profile);
 
+    useEffect(() => {
+        if (user && user._id) {
+            async function fetchUserData() {
+                try {
+                    const userData = await getUserById(user._id, accessToken);
+                    console.log(userData);
+                    
+                    setProfile(userData);
+                    console.log(profile);
+                    
+                } catch (error) {
+                    toast.error('Error fetching user data');
+                }
+            }
+            fetchUserData();
+        }
+    }, [user, accessToken]);
+
+    console.log(profile);
     const handleProfileImageChange = (e) => {
         const file = e.target.files[0];
         const reader = new FileReader();
@@ -36,11 +54,23 @@ const Settings = () => {
         setPassword(e.target.value);
     };
 
-    const handleUpdate = (e) => {
+    const handleUpdate = async (e) => {
         e.preventDefault();
-        // Handle profile update logic here
-        console.log('Profile updated:', profile, 'New password:', password);
-        toast.success('Profile updated successfully!');
+        try {
+            const updatedProfile = await updateAdminDetails(
+                profile._id,
+                profile.firstname,
+                profile.lastname,
+                profile.email,
+                // profile.status,
+                password,
+                accessToken
+            );
+            setProfile(updatedProfile);
+            toast.success('Profile updated successfully!');
+        } catch (error) {
+            toast.error('Error updating profile');
+        }
     };
 
     return (
@@ -53,7 +83,7 @@ const Settings = () => {
                     <div className="flex items-center justify-center">
                         <div className="relative">
                             <img
-                                src={profile.profileImage}
+                                //src={profile.profileImage}
                                 alt="Profile"
                                 className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
                             />
@@ -74,17 +104,17 @@ const Settings = () => {
                     <div className="flex gap-4">
                         <input
                             type="text"
-                            name="firstName"
+                            name="firstname"
                             placeholder="First Name"
-                            value={profile.firstName}
+                            value={profile.firstname}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 border rounded-full"
                         />
                         <input
                             type="text"
-                            name="lastName"
+                            name="lastname"
                             placeholder="Last Name"
-                            value={profile.lastName}
+                            value={profile.lastname}
                             onChange={handleInputChange}
                             className="w-full px-3 py-2 border rounded-full"
                         />
@@ -94,7 +124,7 @@ const Settings = () => {
                         name="email"
                         placeholder="Email"
                         value={profile.email}
-                        readOnly
+                        onChange={handleInputChange}
                         className="w-full px-3 py-2 border rounded-full bg-gray-100"
                     />
                     <input

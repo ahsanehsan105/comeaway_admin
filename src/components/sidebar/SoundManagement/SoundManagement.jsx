@@ -1,77 +1,98 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useContext } from "react"
 import { Search, Plus, Edit, Trash2, ChevronDown } from "lucide-react"
 import AddOrUpdateSound from './component/AddUpdateForm'
+import { deleteSound, getSounds } from "../../../utils/API_SERVICE"
+import { AuthContext } from "../../../context/authContext"
+import { toast, ToastContainer } from "react-toastify"
 
 // Mock data for demonstration
-const mockSounds = [
-  {
-    id: 1,
-    title: "Ocean Waves",
-    description: "Calming ocean waves sound",
-    category: "Nature",
-    status: "Premium",
-  },
-  {
-    id: 2,
-    title: "Forest Birds",
-    description: "Morning forest birds chirping",
-    category: "Nature",
-    status: "Standard",
-  },
-  {
-    id: 3,
-    title: "Rain Storm",
-    description: "Heavy rain and thunder",
-    category: "Weather",
-    status: "Premium",
-  },
-  {
-    id: 4,
-    title: "Meditation Bell",
-    description: "Tibetan meditation bell",
-    category: "Meditation",
-    status: "Standard",
-  },
-  {
-    id: 5,
-    title: "White Noise",
-    description: "Consistent white noise for focus",
-    category: "Focus",
-    status: "Premium",
-  },
-  {
-    id: 6,
-    title: "City Ambiance",
-    description: "Sounds of a bustling city",
-    category: "Urban",
-    status: "Standard",
-  },
-]
+// const mockSounds = [
+//   {
+//     id: 1,
+//     title: "Ocean Waves",
+//     description: "Calming ocean waves sound",
+//     category: "Nature",
+//     status: "Premium",
+//   },
+//   {
+//     id: 2,
+//     title: "Forest Birds",
+//     description: "Morning forest birds chirping",
+//     category: "Nature",
+//     status: "Standard",
+//   },
+//   {
+//     id: 3,
+//     title: "Rain Storm",
+//     description: "Heavy rain and thunder",
+//     category: "Weather",
+//     status: "Premium",
+//   },
+//   {
+//     id: 4,
+//     title: "Meditation Bell",
+//     description: "Tibetan meditation bell",
+//     category: "Meditation",
+//     status: "Standard",
+//   },
+//   {
+//     id: 5,
+//     title: "White Noise",
+//     description: "Consistent white noise for focus",
+//     category: "Focus",
+//     status: "Premium",
+//   },
+//   {
+//     id: 6,
+//     title: "City Ambiance",
+//     description: "Sounds of a bustling city",
+//     category: "Urban",
+//     status: "Standard",
+//   },
+// ]
 
-const mockCategories = [
-  { id: 1, name: "Nature", description: "Natural sounds from the environment", count: 2 },
-  { id: 2, name: "Weather", description: "Weather related sounds", count: 1 },
-  { id: 3, name: "Meditation", description: "Sounds for meditation and relaxation", count: 1 },
-  { id: 4, name: "Focus", description: "Sounds to improve concentration", count: 1 },
-]
+// const mockCategories = [
+//   { id: 1, name: "Nature", description: "Natural sounds from the environment", count: 2 },
+//   { id: 2, name: "Weather", description: "Weather related sounds", count: 1 },
+//   { id: 3, name: "Meditation", description: "Sounds for meditation and relaxation", count: 1 },
+//   { id: 4, name: "Focus", description: "Sounds to improve concentration", count: 1 },
+// ]
 
 export default function SoundManagement() {
   const [currentView, setCurrentView] = useState("main")
+  const { accessToken } = useContext(AuthContext);
   const [selectedSound, setSelectedSound] = useState(null)
-  const [sounds, setSounds] = useState(mockSounds)
+  const [sounds, setSounds] = useState([])
   const [searchFilters, setSearchFilters] = useState({ serial: "", title: "", category: "", status: "" })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
   const [isSelectOpen, setIsSelectOpen] = useState(false)
   const [selectedCategoryFilter, setSelectedCategoryFilter] = useState("All")
-  const [filteredSounds, setFilteredSounds] = useState(mockSounds)
+  const [filteredSounds, setFilteredSounds] = useState([])
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
   const selectRef = useRef(null)
 
+
   // Close select dropdown when clicking outside
+console.log(sounds);
+
+  useEffect(() => {
+    async function fetchSounds() {
+      try {
+        const soundsData = await getSounds(accessToken);
+        setSounds(soundsData);
+        setFilteredSounds(soundsData);
+        console.log(soundsData);
+        
+      } catch (error) {
+        toast.error('Error fetching sounds');
+      }
+    }
+    fetchSounds();
+  }, [accessToken]);
   useEffect(() => {
     function handleClickOutside(event) {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -85,24 +106,34 @@ export default function SoundManagement() {
   }, [])
 
   // Filter sounds based on search term
-  useEffect(() => {
-    const filtered = sounds.filter(
-      (sound, index) =>
-        (index + 1).toString().includes(searchFilters.serial) &&
-        sound.title.toLowerCase().includes(searchFilters.title.toLowerCase()) &&
-        (selectedCategoryFilter === "All" || sound.category === selectedCategoryFilter) &&
-        sound.category.toLowerCase().includes(searchFilters.category.toLowerCase()) &&
-        sound.status.toLowerCase().includes(searchFilters.status.toLowerCase())
-    )
-    setFilteredSounds(filtered)
-    setCurrentPage(1) // Reset to first page on filter change
-  }, [searchFilters, selectedCategoryFilter, sounds])
+  // useEffect(() => {
+  //   const filtered = Array.isArray(sounds) && sounds.filter(
+  //     (sound, index) =>
+  //       (index + 1).toString().includes(searchFilters.serial) &&
+  //       sound.title.toLowerCase().includes(searchFilters.title.toLowerCase()) &&
+  //       (selectedCategoryFilter === "All" || sound.category === selectedCategoryFilter) &&
+  //       sound.categories.toLowerCase().includes(searchFilters.category.toLowerCase()) &&
+  //       sound.status.toLowerCase().includes(searchFilters.status.toLowerCase())
+  //   );
+  //   setFilteredSounds(filtered);
+  //   setCurrentPage(1); // Reset to first page on filter change
+  // }, [searchFilters, selectedCategoryFilter, sounds]);
 
-  const handleDeleteConfirm = () => {
+  const handleDeleteConfirm = async () => {
     if (itemToDelete) {
-      const updatedSounds = sounds.filter((sound) => sound.id !== itemToDelete.id)
-      setSounds(updatedSounds)
-      setFilteredSounds(updatedSounds)
+      console.log(itemToDelete);
+      try {
+         await deleteSound(itemToDelete._id, accessToken);
+         toast.success("Sound deleted successfully");
+         const updatedSounds = sounds.filter((sound)=> sound._id !== itemToDelete._id);
+         setSounds(updatedSounds);
+         setFilteredSounds(updatedSounds);
+
+        
+      } catch (error) {
+        toast.error("Error deleting sound")
+      }
+     
     }
     setShowDeleteConfirm(false)
     setItemToDelete(null)
@@ -238,7 +269,7 @@ export default function SoundManagement() {
                           {index + 1 + (currentPage - 1) * itemsPerPage}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{sound.title}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{sound.category}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{sound.categories}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${sound.status === "Premium" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
@@ -369,6 +400,7 @@ export default function SoundManagement() {
       {currentView === "updateSound" && <AddOrUpdateSound setCurrentView={setCurrentView} selectedSound={selectedSound} onSave={handleSoundSave} buttonText="Save Sound" />}
 
       <DeleteConfirmModal />
+      <ToastContainer />
     </div>
   )
 }

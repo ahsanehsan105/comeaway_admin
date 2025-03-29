@@ -1,54 +1,84 @@
 "use client"
 
-import { useState } from "react"
-import { ArrowLeft } from "lucide-react"
-
-const mockCategories = [
-  { id: 1, name: "Nature", description: "Natural sounds from the environment", count: 2 },
-  { id: 2, name: "Weather", description: "Weather related sounds", count: 1 },
-  { id: 3, name: "Meditation", description: "Sounds for meditation and relaxation", count: 1 },
-]
+import { useState, useEffect, useContext } from "react";
+import { ArrowLeft } from "lucide-react";
+import { ToastContainer, toast } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import { createSound, getCategories } from "../../../../utils/API_SERVICE";
+import { AuthContext } from "../../../../context/authContext";
 
 export default function AddOrUpdateSound({ setCurrentView, selectedSound = null, onSave, buttonText }) {
-  const [soundPreview, setSoundPreview] = useState(null)
-  const [thumbnailPreview, setThumbnailPreview] = useState(null)
+  const { accessToken } = useContext(AuthContext);
+  const [categories, setCategories] = useState([]);
+  const [soundFile, setSoundFile] = useState(null);
+  const [thumbnailFile, setThumbnailFile] = useState(null);
+  const [soundPreview, setSoundPreview] = useState(null);
+  const [thumbnailPreview, setThumbnailPreview] = useState(null);
+  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+
+  useEffect(() => {
+    async function fetchCategories() {
+      try {
+        const categoriesData = await getCategories(accessToken);
+        setCategories(categoriesData);
+      } catch (error) {
+        toast.error('Error fetching categories');
+      }
+    }
+    fetchCategories();
+  }, [accessToken]);
 
   const handleSoundUpload = (event) => {
-    const file = event.target.files[0]
+    const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setSoundPreview(e.target.result)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error('Sound file is too large. Maximum size is 50 MB.');
+        return;
       }
-      reader.readAsDataURL(file)
+      setSoundFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setSoundPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
   const handleThumbnailUpload = (event) => {
-    const file = event.target.files[0]
+    const file = event.target.files[0];
     if (file) {
-      const reader = new FileReader()
-      reader.onload = (e) => {
-        setThumbnailPreview(e.target.result)
+      if (file.size > MAX_FILE_SIZE) {
+        toast.error('Thumbnail file is too large. Maximum size is 50 MB.');
+        return;
       }
-      reader.readAsDataURL(file)
+      setThumbnailFile(file);
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        setThumbnailPreview(e.target.result);
+      };
+      reader.readAsDataURL(file);
     }
-  }
+  };
 
-  const handleSubmit = (event) => {
-    event.preventDefault()
-    const formData = new FormData(event.target)
-    const newSound = {
-      id: selectedSound ? selectedSound.id : null,
-      title: formData.get("title"),
-      description: formData.get("description"),
-      category: formData.get("category"),
-      status: formData.get("status"),
-      soundFile: soundPreview,
-      thumbnail: thumbnailPreview,
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    const formData = new FormData();
+    formData.append('title', event.target.title.value);
+    formData.append('description', event.target.description.value);
+    formData.append('categories', event.target.category.value);
+    formData.append('status', event.target.status.value);
+    formData.append('soundFile', soundFile);
+    formData.append('thumbnail', thumbnailFile);
+
+    try {
+      await createSound(formData, accessToken);
+      toast.success('Sound created successfully');
+      onSave();
+      setCurrentView('main');
+    } catch (error) {
+      toast.error(`Error creating sound: ${error.response ? error.response.data.message : error.message}`);
     }
-    onSave(newSound)
-  }
+  };
 
   return (
     <div className="bg-white rounded-lg border border-gray-200 shadow-md">
@@ -201,12 +231,12 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
           <div className="space-y-2">
             <label className="block text-sm font-medium text-gray-700">Assign Categories</label>
             <div className="border border-gray-300 rounded-md p-4 space-y-2">
-              {mockCategories.map((category) => (
+              {categories.map((category) => (
                 <div key={category.id} className="flex items-center space-x-2">
                   <div className="relative flex items-start">
                     <div className="flex h-5 items-center">
                       <input
-                        id={`category-${category.id}`}
+                        id={`category-${category._id}`}
                         name="category"
                         value={category.name}
                         type="checkbox"
@@ -215,7 +245,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
                       />
                     </div>
                     <div className="ml-3 text-sm">
-                      <label htmlFor={`category-${category.id}`} className="font-medium text-gray-700">
+                      <label htmlFor={`category-${category._id}`} className="font-medium text-gray-700">
                         {category.name}
                       </label>
                     </div>
@@ -275,6 +305,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
           </div>
         </form>
       </div>
+      <ToastContainer />
     </div>
-  )
+  );
 }

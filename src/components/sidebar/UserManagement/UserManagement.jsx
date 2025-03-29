@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import ReactPaginate from 'react-paginate';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { FaEye } from 'react-icons/fa';
+import { AuthContext } from '../../../context/authContext';
+import { getAllUsers, updateUserStatus, getUserSubscriptionDetails } from '../../../utils/API_SERVICE';
 
-const UserManagement = ({ subscriptions }) => {
+const UserManagement = () => {
+    const { accessToken } = useContext(AuthContext);
     const [currentPage, setCurrentPage] = useState(0);
     const [userIdSearch, setUserIdSearch] = useState('');
     const [userNameSearch, setUserNameSearch] = useState('');
@@ -12,51 +15,49 @@ const UserManagement = ({ subscriptions }) => {
     const [selectedStatus, setSelectedStatus] = useState('');
     const [subscriptionSearch, setSubscriptionSearch] = useState('');
     const [transactionIdSearch, setTransactionIdSearch] = useState('');
+    const [userData, setUserData] = useState([]);
+    const [subscriptionHistory, setSubscriptionHistory] = useState([]);
     const itemsPerPage = 5;
 
-    // Dummy subscriptions data
-    const dummySubscriptions = [
-        { id: 1, userId: 101, userName: 'John Doe', status: 'active' },
-        { id: 2, userId: 102, userName: 'Jane Doe', status: 'inactive' },
-        { id: 3, userId: 103, userName: 'Alice Smith', status: 'active' },
-        { id: 4, userId: 104, userName: 'Bob Johnson', status: 'inactive' },
-        { id: 5, userId: 105, userName: 'Charlie Brown', status: 'active' },
-        { id: 6, userId: 106, userName: 'David Williams', status: 'inactive' },
-        { id: 7, userId: 107, userName: 'Eve Davis', status: 'active' },
-    ];
+    console.log(subscriptionHistory);
+    
+    useEffect(() => {
+        const fetchUsers = async () => {
+            try {
+                const users = await getAllUsers(accessToken);
+                setUserData(users);
+                toast.success('Users fetched successfully');
+            } catch (error) {
+                toast.error('Error fetching users');
+            }
+        };
 
-    const dummySubscriptionHistory = [
-        { transactionId: 1, userId: 101, subscriptionName: 'Standard', startDate: '2022-01-01', endDate: '2023-01-01' },
-        { transactionId: 2, userId: 101, subscriptionName: 'Premium', startDate: '2023-02-01', endDate: '2024-02-01' },
-        { transactionId: 3, userId: 102, subscriptionName: 'Standard', startDate: '2022-03-01', endDate: '2023-03-01' },
-        { transactionId: 4, userId: 103, subscriptionName: 'Premium', startDate: '2022-04-01', endDate: '2023-04-01' },
-        { transactionId: 5, userId: 104, subscriptionName: 'Standard', startDate: '2022-05-01', endDate: '2023-05-01' },
-        { transactionId: 6, userId: 105, subscriptionName: 'Premium', startDate: '2022-06-01', endDate: '2023-06-01' },
-        { transactionId: 7, userId: 106, subscriptionName: 'Standard', startDate: '2022-07-01', endDate: '2023-07-01' },
-        { transactionId: 8, userId: 107, subscriptionName: 'Premium', startDate: '2022-08-01', endDate: '2023-08-01' },
-    ];
-
-    const [subscriptionData, setSubscriptionData] = useState(dummySubscriptions);
-    const [subscriptionHistory, setSubscriptionHistory] = useState(dummySubscriptionHistory);
+        fetchUsers();
+    }, [accessToken]);
 
     const handleStatusChange = (id) => {
-        const updatedSubscriptions = subscriptionData.map(subscription =>
-            subscription.id === id
-                ? { ...subscription, status: subscription.status === 'active' ? 'inactive' : 'active' }
-                : subscription
+        const updatedUsers = userData.map(user =>
+            user._id === id
+                ? { ...user, status: user.status === 'active' ? 'inactive' : 'active' }
+                : user
         );
-        setSubscriptionData(updatedSubscriptions);
+        setUserData(updatedUsers);
     };
 
-    const handleStatusUpdate = () => {
+    const handleStatusUpdate = async () => {
         if (selectedUser) {
-            const updatedSubscriptions = subscriptionData.map(subscription =>
-                subscription.id === selectedUser.id
-                    ? { ...subscription, status: selectedStatus }
-                    : subscription
-            );
-            setSubscriptionData(updatedSubscriptions);
-            toast.success('Status updated successfully');
+            try {
+                await updateUserStatus(selectedUser._id, selectedStatus, accessToken);
+                const updatedUsers = userData.map(user =>
+                    user._id === selectedUser._id
+                        ? { ...user, status: selectedStatus }
+                        : user
+                );
+                setUserData(updatedUsers);
+                toast.success('Status updated successfully');
+            } catch (error) {
+                toast.error('Error updating status');
+            }
         }
     };
 
@@ -80,23 +81,35 @@ const UserManagement = ({ subscriptions }) => {
         setTransactionIdSearch(e.target.value);
     };
 
-    const handleUserPreview = (user) => {
+    const handleUserPreview = async (user) => {
         setSelectedUser(user);
+        // console.log(user._id);
+        
+        // console.log(selectedUser);
+        
         setSelectedStatus(user.status);
+        console.log(user._id);
+        try {
+            const userSubscriptionHistory = await getUserSubscriptionDetails(user._id, accessToken);
+            setSubscriptionHistory(userSubscriptionHistory);
+        } catch (error) {
+            toast.error('Error fetching subscription history');
+        }
     };
 
     const handleBackToTable = () => {
         setSelectedUser(null);
+        setSubscriptionHistory([]);
     };
 
-    const filteredData = subscriptionData.filter(subscription =>
-        subscription.userId.toString().includes(userIdSearch) && subscription.userName.toLowerCase().includes(userNameSearch.toLowerCase())
+    const filteredData = userData.filter(user =>
+        user._id.toString().includes(userIdSearch) &&
+        (user.firstname.toLowerCase() + ' ' + user.lastname.toLowerCase()).includes(userNameSearch.toLowerCase())
     );
 
     const filteredSubscriptionHistory = subscriptionHistory.filter(history =>
-        history.userId === selectedUser?.userId &&
-        history.subscriptionName.toLowerCase().includes(subscriptionSearch.toLowerCase()) &&
-        history.transactionId.toString().includes(transactionIdSearch)
+        history.plan.toLowerCase().includes(subscriptionSearch.toLowerCase()) &&
+        history._id.toString().includes(transactionIdSearch)
     );
 
     const offset = currentPage * itemsPerPage;
@@ -119,10 +132,10 @@ const UserManagement = ({ subscriptions }) => {
                         <div className="bg-gray-100 p-6 rounded shadow-md">
                             <h2 className="text-3xl font-bold mb-6 text-center">User Details</h2>
                             <div className="mb-4">
-                                <p className="text-lg"><strong>User ID:</strong> {selectedUser.userId}</p>
+                                <p className="text-lg"><strong>User ID:</strong> {selectedUser._id}</p>
                             </div>
                             <div className="mb-4">
-                                <p className="text-lg"><strong>User Name:</strong> {selectedUser.userName}</p>
+                                <p className="text-lg"><strong>User Name:</strong> {selectedUser.firstname} {selectedUser.lastname}</p>
                             </div>
                             <div className="mb-4">
                                 <p className="text-lg"><strong>Status:</strong> {selectedUser.status}</p>
@@ -152,6 +165,7 @@ const UserManagement = ({ subscriptions }) => {
                                         <tr>
                                             <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Transaction ID</th>
                                             <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Subscription Name</th>
+                                            <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Status</th>
                                             <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Start Date</th>
                                             <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">End Date</th>
                                         </tr>
@@ -159,10 +173,11 @@ const UserManagement = ({ subscriptions }) => {
                                     <tbody>
                                         {filteredSubscriptionHistory.map((history) => (
                                             <tr key={history.transactionId} className="hover:bg-gray-50">
-                                                <td className="py-2 px-4 border-b border-gray-300">{history.transactionId}</td>
-                                                <td className="py-2 px-4 border-b border-gray-300">{history.subscriptionName}</td>
-                                                <td className="py-2 px-4 border-b border-gray-300">{history.startDate}</td>
-                                                <td className="py-2 px-4 border-b border-gray-300">{history.endDate}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{history._id}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{history.plan}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{history.status}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{new Date(history.startDate).toLocaleDateString()}</td>
+                                                <td className="py-2 px-4 border-b border-gray-300">{new Date(history.endDate).toLocaleDateString()}</td>
                                             </tr>
                                         ))}
                                     </tbody>
@@ -215,20 +230,22 @@ const UserManagement = ({ subscriptions }) => {
                             <thead>
                                 <tr>
                                     <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">User ID</th>
-                                    <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">User Name</th>
-                                    <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Subscription Status</th>
+                                    <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">First Name</th>
+                                    <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Last Name</th>
+                                    <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Status</th>
                                     <th className="py-2 px-4 border-b border-gray-300 text-left bg-gray-100">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {currentPageData.map((subscription) => (
-                                    <tr key={subscription.id} className="hover:bg-gray-50">
-                                        <td className="py-2 px-4 border-b border-gray-300">{subscription.userId}</td>
-                                        <td className="py-2 px-4 border-b border-gray-300">{subscription.userName}</td>
-                                        <td className="py-2 px-4 border-b border-gray-300">{subscription.status}</td>
+                                {currentPageData.map((user) => (
+                                    <tr key={user._id} className="hover:bg-gray-50">
+                                        <td className="py-2 px-4 border-b border-gray-300">{user._id}</td>
+                                        <td className="py-2 px-4 border-b border-gray-300">{user.firstname}</td>
+                                        <td className="py-2 px-4 border-b border-gray-300">{user.lastname}</td>
+                                        <td className="py-2 px-4 border-b border-gray-300">{user.status}</td>
                                         <td className="py-2 px-4 border-b border-gray-300">
                                             <button
-                                                onClick={() => handleUserPreview(subscription)}
+                                                onClick={() => handleUserPreview(user)}
                                                 className="px-3 py-1 rounded text-white"
                                                 style={{ backgroundColor: '#439AB8' }}
                                             >
