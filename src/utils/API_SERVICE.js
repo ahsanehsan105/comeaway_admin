@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://comeawaybackend.vercel.app/api'; // Adjust the base URL as necessary
+const API_BASE_URL = 'http://localhost:5000/api'; // Adjust the base URL as necessary
 
 // Create an Axios instance with the access token
 const createAxiosInstance = (accessToken) => {
@@ -121,27 +121,7 @@ export const resetPassword = async (resetToken, newPassword, accessToken) => {
   }
 };
 
-export const getAllUsers = async (accessToken) => {
-  const axiosInstance = createAxiosInstance(accessToken);
-  const endpoint = '/auth/all-user';
 
-  try {
-    const response = await axiosInstance.get(endpoint);
-    return response.data;
-  } catch (error) {
-    console.error('Error fetching all users:', {
-      message: error.message,
-      config: error.config,
-      response: error.response ? {
-        status: error.response.status,
-        data: error.response.data,
-        headers: error.response.headers,
-      } : null,
-    });
-
-    throw error;
-  }
-};
 
 export const updateUserStatus = async (id, status, accessToken) => {
   const axiosInstance = createAxiosInstance(accessToken);
@@ -394,7 +374,7 @@ export const getSoundById = async (id, accessToken) => {
 };
 
 export const updateSound = async (id, formData, accessToken) => {
-  const axiosInstance = createAxiosInstance(accessToken);
+  const axiosInstance = createAxiosInstances(accessToken);
   const endpoint = `/sounds/updateSound/${id}`;
 
   try {
@@ -472,6 +452,27 @@ export const getAllUsersSubscription = async (accessToken) => {
     return response.data;
   } catch (error) {
     console.error('Error fetching All User Subscription Detail :', {
+      message: error.message,
+      config: error.config,
+      response: error.response ? {
+        status: error.response.status,
+        data: error.response.data,
+        headers: error.response.headers,
+      } : null,
+    });
+
+    throw error;
+  }
+};
+export const getAllUsers = async (accessToken) => {
+  const axiosInstance = createAxiosInstance(accessToken);
+  const endpoint = '/auth/all-user';
+
+  try {
+    const response = await axiosInstance.get(endpoint);
+    return response.data;
+  } catch (error) {
+    console.error('Error fetching all users:', {
       message: error.message,
       config: error.config,
       response: error.response ? {

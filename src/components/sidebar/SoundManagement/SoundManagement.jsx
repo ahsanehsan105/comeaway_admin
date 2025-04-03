@@ -264,7 +264,7 @@ console.log(sounds);
                     </tr>
                   ) : (
                     paginatedSounds.map((sound, index) => (
-                      <tr key={sound.id}>
+                      <tr key={sound._id}>
                         <td className="px-6 py-4 whitespace-nowrap">
                           {index + 1 + (currentPage - 1) * itemsPerPage}
                         </td>

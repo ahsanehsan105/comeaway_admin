@@ -2,7 +2,7 @@
 
 import { useState, useRef, useEffect, useContext } from "react";
 import { Search, Plus, Edit, Trash2, ArrowLeft } from "lucide-react";
-import { createCategory, deleteCategory, getCategories, updateCategory } from '../../../utils/API_SERVICE';
+import { createCategory, deleteCategory, getCategories, getSounds, updateCategory } from '../../../utils/API_SERVICE';
 import { AuthContext } from '../../../context/authContext';
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
@@ -15,22 +15,25 @@ export default function CategoryManagement() {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [filteredCategories, setFilteredCategories] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [sounds, setSounds] = useState([]);
   const [searchFilters, setSearchFilters] = useState({ serial: "", name: "", slug: "", count: "" });
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
   const selectRef = useRef(null);
 
   useEffect(() => {
-    async function fetchCategories() {
+    async function fetchCategoriesAndSounds() {
       try {
         const categoriesData = await getCategories(accessToken);
+        const soundsData = await getSounds(accessToken);
         setCategories(categoriesData);
         setFilteredCategories(categoriesData);
+        setSounds(soundsData);
       } catch (error) {
-        toast.error('Error fetching categories');
+        toast.error('Error fetching categories or sounds');
       }
     }
-    fetchCategories();
+    fetchCategoriesAndSounds();
   }, [accessToken]);
 
   useEffect(() => {
@@ -181,36 +184,40 @@ export default function CategoryManagement() {
                         No categories found matching your search
                       </td>
                     </tr>
-                  ) : (
-                    paginatedCategories.map((category) => (
-                      <tr key={category._id}>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{categories.findIndex(cat => cat._id === category._id) + 1}</td>
-                        <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{category.name}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{category.slug}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-right">
-                          <div className="flex justify-end gap-2">
-                            <button
-                              className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
-                              onClick={() => {
-                                setSelectedCategory(category);
-                                setCurrentView("updateCategory");
-                              }}
-                            >
-                              <Edit className="h-4 w-4" />
-                            </button>
-                            <button
-                              className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
-                              onClick={() => {
-                                setItemToDelete(category);
-                                setShowDeleteConfirm(true);
-                              }}
-                            >
-                              <Trash2 className="h-4 w-4" />
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))
+                  ) : ( 
+                    paginatedCategories.map((category) => {
+                      const assignedSounds = sounds.filter(sound => sound.categories.includes(category._id)).length;
+                      return (
+                        <tr key={category._id}>
+                          <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{categories.findIndex(cat => cat._id === category._id) + 1}</td>
+                          <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{category.name}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-500">{category.slug}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-gray-500">{assignedSounds}</td>
+                          <td className="px-6 py-4 whitespace-nowrap text-right">
+                            <div className="flex justify-end gap-2">
+                              <button
+                                className="inline-flex items-center p-1.5 border border-gray-300 rounded-md shadow-sm text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                                onClick={() => {
+                                  setSelectedCategory(category);
+                                  setCurrentView("updateCategory");
+                                }}
+                              >
+                                <Edit className="h-4 w-4" />
+                              </button>
+                              <button
+                                className="inline-flex items-center p-1.5 border border-transparent rounded-md shadow-sm text-white bg-red-600 hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500"
+                                onClick={() => {
+                                  setItemToDelete(category);
+                                  setShowDeleteConfirm(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })
                   )}
                 </tbody>
               </table>
@@ -391,16 +398,17 @@ export default function CategoryManagement() {
                 Delete
               </button>
               <button
-                type="button"
-                className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                Cancel
-              </button>
+                  type="button"
+                  className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 shadow-sm px-4 py-2 bg-white text-base font-medium text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:ml-3 sm:w-auto sm:text-sm"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  Cancel
+                </button>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+     
     )
   }
 

@@ -4,7 +4,7 @@ import { useState, useEffect, useContext } from "react";
 import { ArrowLeft } from "lucide-react";
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
-import { createSound, getCategories } from "../../../../utils/API_SERVICE";
+import { createSound, updateSound, getCategories } from "../../../../utils/API_SERVICE";
 import { AuthContext } from "../../../../context/authContext";
 
 export default function AddOrUpdateSound({ setCurrentView, selectedSound = null, onSave, buttonText }) {
@@ -14,7 +14,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
   const [thumbnailFile, setThumbnailFile] = useState(null);
   const [soundPreview, setSoundPreview] = useState(null);
   const [thumbnailPreview, setThumbnailPreview] = useState(null);
-  const MAX_FILE_SIZE = 50 * 1024 * 1024; // 50 MB
+  const MAX_FILE_SIZE = 50 * 1024 * 1024;
 
   useEffect(() => {
     async function fetchCategories() {
@@ -27,6 +27,9 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
     }
     fetchCategories();
   }, [accessToken]);
+
+ console.log("selectedSound", selectedSound);
+ 
 
   const handleSoundUpload = (event) => {
     const file = event.target.files[0];
@@ -65,18 +68,33 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
     const formData = new FormData();
     formData.append('title', event.target.title.value);
     formData.append('description', event.target.description.value);
-    formData.append('categories', event.target.category.value);
     formData.append('status', event.target.status.value);
     formData.append('soundFile', soundFile);
     formData.append('thumbnail', thumbnailFile);
 
+    // Get selected categories
+    const selectedCategories = Array.from(event.target.category)
+      .filter(input => input.checked)
+      .map(input => input.value);
+    formData.append('categories', JSON.stringify(selectedCategories));
+
+    // Log formData contents
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
+    }
+
     try {
-      await createSound(formData, accessToken);
-      toast.success('Sound created successfully');
+      if (selectedSound) {
+        await updateSound(selectedSound._id, formData, accessToken);
+        toast.success('Sound updated successfully');
+      } else {
+        await createSound(formData, accessToken);
+        toast.success('Sound created successfully');
+      }
       onSave();
-      setCurrentView('main');
+      setCurrentView("main");
     } catch (error) {
-      toast.error(`Error creating sound: ${error.response ? error.response.data.message : error.message}`);
+      toast.error(`Error ${selectedSound ? 'updating' : 'creating'} sound: ${error.response ? error.response.data.message : error.message}`);
     }
   };
 
@@ -232,15 +250,15 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
             <label className="block text-sm font-medium text-gray-700">Assign Categories</label>
             <div className="border border-gray-300 rounded-md p-4 space-y-2">
               {categories.map((category) => (
-                <div key={category.id} className="flex items-center space-x-2">
+                <div key={category._id} className="flex items-center space-x-2">
                   <div className="relative flex items-start">
                     <div className="flex h-5 items-center">
                       <input
                         id={`category-${category._id}`}
                         name="category"
-                        value={category.name}
+                        value={category._id}
                         type="checkbox"
-                        defaultChecked={selectedSound?.category === category.name}
+                        defaultChecked={selectedSound?.categories?.includes(category._id) || false}
                         className="h-4 w-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
                       />
                     </div>
