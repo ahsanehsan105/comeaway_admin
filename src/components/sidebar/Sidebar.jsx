@@ -1,12 +1,14 @@
-import React, { useState } from 'react';
+import React, { useContext, useState } from 'react';
 import { CgList } from 'react-icons/cg';
 import { FaUser, FaRegCreditCard, FaBars, FaTimes } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
 import { LuLayoutDashboard } from 'react-icons/lu';
 import { MdLogout } from 'react-icons/md';
 import { TbMusicCog } from 'react-icons/tb';
+import { AuthContext } from '../../context/authContext';
 
 function Sidebar({ onMenuItemClick }) {
+   const {logout} = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Dashboard');
 
@@ -20,8 +22,7 @@ function Sidebar({ onMenuItemClick }) {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem('user');
-    window.location.href = '/login';
+   logout();
   };
 
   return (
