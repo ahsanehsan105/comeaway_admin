@@ -7,58 +7,6 @@ import { deleteSound, getSounds } from "../../../utils/API_SERVICE"
 import { AuthContext } from "../../../context/authContext"
 import { toast, ToastContainer } from "react-toastify"
 
-// Mock data for demonstration
-// const mockSounds = [
-//   {
-//     id: 1,
-//     title: "Ocean Waves",
-//     description: "Calming ocean waves sound",
-//     category: "Nature",
-//     status: "Premium",
-//   },
-//   {
-//     id: 2,
-//     title: "Forest Birds",
-//     description: "Morning forest birds chirping",
-//     category: "Nature",
-//     status: "Standard",
-//   },
-//   {
-//     id: 3,
-//     title: "Rain Storm",
-//     description: "Heavy rain and thunder",
-//     category: "Weather",
-//     status: "Premium",
-//   },
-//   {
-//     id: 4,
-//     title: "Meditation Bell",
-//     description: "Tibetan meditation bell",
-//     category: "Meditation",
-//     status: "Standard",
-//   },
-//   {
-//     id: 5,
-//     title: "White Noise",
-//     description: "Consistent white noise for focus",
-//     category: "Focus",
-//     status: "Premium",
-//   },
-//   {
-//     id: 6,
-//     title: "City Ambiance",
-//     description: "Sounds of a bustling city",
-//     category: "Urban",
-//     status: "Standard",
-//   },
-// ]
-
-// const mockCategories = [
-//   { id: 1, name: "Nature", description: "Natural sounds from the environment", count: 2 },
-//   { id: 2, name: "Weather", description: "Weather related sounds", count: 1 },
-//   { id: 3, name: "Meditation", description: "Sounds for meditation and relaxation", count: 1 },
-//   { id: 4, name: "Focus", description: "Sounds to improve concentration", count: 1 },
-// ]
 
 export default function SoundManagement() {
   const [currentView, setCurrentView] = useState("main")
@@ -74,10 +22,6 @@ export default function SoundManagement() {
   const [currentPage, setCurrentPage] = useState(1)
   const itemsPerPage = 5
   const selectRef = useRef(null)
-
-
-  // Close select dropdown when clicking outside
-console.log(sounds);
 
   useEffect(() => {
     async function fetchSounds() {

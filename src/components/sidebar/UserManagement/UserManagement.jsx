@@ -172,7 +172,7 @@ const UserManagement = () => {
                                     </thead>
                                     <tbody>
                                         {filteredSubscriptionHistory.map((history) => (
-                                            <tr key={history.transactionId} className="hover:bg-gray-50">
+                                            <tr key={history._id} className="hover:bg-gray-50">
                                                 <td className="py-2 px-4 border-b border-gray-300">{history._id}</td>
                                                 <td className="py-2 px-4 border-b border-gray-300">{history.plan}</td>
                                                 <td className="py-2 px-4 border-b border-gray-300">{history.status}</td>

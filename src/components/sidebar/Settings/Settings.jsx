@@ -12,14 +12,13 @@ const Settings = () => {
     const [profile, setProfile] = useState({});
     const [password, setPassword] = useState('');
 console.log(profile);
-
+    
     useEffect(() => {
         if (user && user._id) {
             async function fetchUserData() {
                 try {
                     const userData = await getUserById(user._id, accessToken);
                     console.log(userData);
-                    
                     setProfile(userData);
                     console.log(profile);
                     

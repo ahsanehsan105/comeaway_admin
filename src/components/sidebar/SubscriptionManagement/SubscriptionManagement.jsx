@@ -11,15 +11,15 @@ const SubscriptionManagement = ({ subscriptions }) => {
     const itemsPerPage = 5;
 
     // Dummy subscriptions data
-    const dummySubscriptions = [
-        { id: 1, userId: 101, userName: 'John Doe', purchaseDate: '2025-02-01', expiryDate: '2026-02-01' },
-        { id: 2, userId: 102, userName: 'Jane Doe', purchaseDate: '2025-03-01', expiryDate: '2026-03-01' },
-        { id: 3, userId: 103, userName: 'Alice Smith', purchaseDate: '2025-04-01', expiryDate: '2026-04-01' },
-        { id: 4, userId: 104, userName: 'Bob Johnson', purchaseDate: '2025-05-01', expiryDate: '2026-05-01' },
-        { id: 5, userId: 105, userName: 'Charlie Brown', purchaseDate: '2025-06-01', expiryDate: '2026-06-01' },
-        { id: 6, userId: 106, userName: 'David Williams', purchaseDate: '2025-07-01', expiryDate: '2026-07-01' },
-        { id: 7, userId: 107, userName: 'Eve Davis', purchaseDate: '2025-08-01', expiryDate: '2026-08-01' },
-    ];
+    // const dummySubscriptions = [
+    //     { id: 1, userId: 101, userName: 'John Doe', purchaseDate: '2025-02-01', expiryDate: '2026-02-01' },
+    //     { id: 2, userId: 102, userName: 'Jane Doe', purchaseDate: '2025-03-01', expiryDate: '2026-03-01' },
+    //     { id: 3, userId: 103, userName: 'Alice Smith', purchaseDate: '2025-04-01', expiryDate: '2026-04-01' },
+    //     { id: 4, userId: 104, userName: 'Bob Johnson', purchaseDate: '2025-05-01', expiryDate: '2026-05-01' },
+    //     { id: 5, userId: 105, userName: 'Charlie Brown', purchaseDate: '2025-06-01', expiryDate: '2026-06-01' },
+    //     { id: 6, userId: 106, userName: 'David Williams', purchaseDate: '2025-07-01', expiryDate: '2026-07-01' },
+    //     { id: 7, userId: 107, userName: 'Eve Davis', purchaseDate: '2025-08-01', expiryDate: '2026-08-01' },
+    // ];
 
     const handleSearchChange = (e) => {
         const { name, value } = e.target;

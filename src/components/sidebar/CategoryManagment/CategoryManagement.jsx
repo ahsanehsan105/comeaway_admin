@@ -129,7 +129,7 @@ export default function CategoryManagement() {
                   onChange={(e) => setSearchFilters({ ...searchFilters, slug: e.target.value })}
                 />
               </div>
-              <div className="relative">
+              {/* <div className="relative">
                 <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-400" />
                 <input
                   type="text"
@@ -138,7 +138,7 @@ export default function CategoryManagement() {
                   value={searchFilters.count}
                   onChange={(e) => setSearchFilters({ ...searchFilters, count: e.target.value })}
                 />
-              </div>
+              </div> */}
             </div>
 
             <div className="rounded-md border border-gray-200 overflow-x-auto">
