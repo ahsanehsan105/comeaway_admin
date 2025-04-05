@@ -94,7 +94,7 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
       onSave();
       setCurrentView("main");
     } catch (error) {
-      toast.error(`Error ${selectedSound ? 'updating' : 'creating'} sound: ${error.response ? error.response.data.message : error.message}`);
+     // toast.error(`Error ${selectedSound ? 'updating' : 'creating'} sound: ${error.response ? error.response.data.message : error.message}`);
     }
   };
 

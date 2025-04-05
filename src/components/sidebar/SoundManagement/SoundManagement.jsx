@@ -3,7 +3,7 @@
 import { useState, useRef, useEffect, useContext } from "react"
 import { Search, Plus, Edit, Trash2, ChevronDown } from "lucide-react"
 import AddOrUpdateSound from './component/AddUpdateForm'
-import { deleteSound, getSounds } from "../../../utils/API_SERVICE"
+import { deleteSound, getCategories, getSounds } from "../../../utils/API_SERVICE"
 import { AuthContext } from "../../../context/authContext"
 import { toast, ToastContainer } from "react-toastify"
 
@@ -13,6 +13,7 @@ export default function SoundManagement() {
   const { accessToken } = useContext(AuthContext);
   const [selectedSound, setSelectedSound] = useState(null)
   const [sounds, setSounds] = useState([])
+  const [categories, setCategories] = useState([])
   const [searchFilters, setSearchFilters] = useState({ serial: "", title: "", category: "", status: "" })
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [itemToDelete, setItemToDelete] = useState(null)
@@ -30,13 +31,25 @@ export default function SoundManagement() {
         setSounds(soundsData);
         setFilteredSounds(soundsData);
         console.log(soundsData);
-        
       } catch (error) {
         toast.error('Error fetching sounds');
       }
     }
+
+    async function fetchCategories() {
+      try {
+        const categoriesData = await getCategories(accessToken);
+        setCategories(categoriesData);
+      } catch (error) {
+        toast.error('Error fetching categories');
+      }
+    }
+
     fetchSounds();
+    fetchCategories();
   }, [accessToken]);
+   console.log(categories, "categories");
+   
   useEffect(() => {
     function handleClickOutside(event) {
       if (selectRef.current && !selectRef.current.contains(event.target)) {
@@ -50,18 +63,18 @@ export default function SoundManagement() {
   }, [])
 
   // Filter sounds based on search term
-  // useEffect(() => {
-  //   const filtered = Array.isArray(sounds) && sounds.filter(
-  //     (sound, index) =>
-  //       (index + 1).toString().includes(searchFilters.serial) &&
-  //       sound.title.toLowerCase().includes(searchFilters.title.toLowerCase()) &&
-  //       (selectedCategoryFilter === "All" || sound.category === selectedCategoryFilter) &&
-  //       sound.categories.toLowerCase().includes(searchFilters.category.toLowerCase()) &&
-  //       sound.status.toLowerCase().includes(searchFilters.status.toLowerCase())
-  //   );
-  //   setFilteredSounds(filtered);
-  //   setCurrentPage(1); // Reset to first page on filter change
-  // }, [searchFilters, selectedCategoryFilter, sounds]);
+  useEffect(() => {
+    const filtered = Array.isArray(sounds) && sounds.filter(
+      (sound, index) =>
+        (index + 1).toString().includes(searchFilters.serial) &&
+        sound.title.toLowerCase().includes(searchFilters.title.toLowerCase()) &&
+        (selectedCategoryFilter === "All" || getCategoryNames(sound.categories).toLowerCase().includes(selectedCategoryFilter.toLowerCase())) &&
+        getCategoryNames(sound.categories).toLowerCase().includes(searchFilters.category.toLowerCase()) &&
+        sound.status.toLowerCase().includes(searchFilters.status.toLowerCase())
+    );
+    setFilteredSounds(filtered);
+    setCurrentPage(1); // Reset to first page on filter change
+  }, [searchFilters, selectedCategoryFilter, sounds]);
 
   const handleDeleteConfirm = async () => {
     if (itemToDelete) {
@@ -72,12 +85,9 @@ export default function SoundManagement() {
          const updatedSounds = sounds.filter((sound)=> sound._id !== itemToDelete._id);
          setSounds(updatedSounds);
          setFilteredSounds(updatedSounds);
-
-        
       } catch (error) {
         toast.error("Error deleting sound")
       }
-     
     }
     setShowDeleteConfirm(false)
     setItemToDelete(null)
@@ -95,12 +105,23 @@ export default function SoundManagement() {
     setCurrentView("main")
   }
 
+  const getCategoryNames = (categoryIds) => {
+    if (!Array.isArray(categoryIds)) {
+      return 'Unknown';
+    }
+    const names = categoryIds.map(categoryId => {
+      const category = categories.find(cat => cat._id === categoryId);
+      return category ? category.name : 'Unknown';
+    });
+    return names.join(', ');
+  }
+
   const renderMainView = () => {
     const startIndex = (currentPage - 1) * itemsPerPage
     const endIndex = startIndex + itemsPerPage
     const paginatedSounds = filteredSounds.slice(startIndex, endIndex)
     const totalPages = Math.ceil(filteredSounds.length / itemsPerPage)
-    
+
     return (
       <div className="grid grid-cols-1 gap-6">
         <div className="flex justify-end">
@@ -213,7 +234,7 @@ export default function SoundManagement() {
                           {index + 1 + (currentPage - 1) * itemsPerPage}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap font-medium text-gray-900">{sound.title}</td>
-                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{sound.categories}</td>
+                        <td className="px-6 py-4 whitespace-nowrap text-gray-500">{getCategoryNames(sound.categories)}</td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span
                             className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${sound.status === "Premium" ? "bg-yellow-100 text-yellow-800" : "bg-green-100 text-green-800"
