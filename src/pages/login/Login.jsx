@@ -25,7 +25,7 @@ function Login() {
       toast.success('Login Successful');
       authLogin(response.token, response.user); // Assuming the response contains token and user data
       console.log(response.token, response.user);
-  
+      
       setTimeout(() => {
         navigate('/');
       }, 1000); // Delay navigation to allow the toast to show

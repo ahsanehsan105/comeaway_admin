@@ -10,6 +10,9 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [isInitialized, setIsInitialized] = useState(false);
 
+  //console.log(isAuthenticated, accessToken, user, isInitialized);
+  
+
   useEffect(() => {
     // Check localStorage for existing user session
     const storedUser = JSON.parse(localStorage.getItem('user'));

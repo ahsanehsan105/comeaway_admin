@@ -47,7 +47,7 @@ export default function SoundManagement() {
 
     fetchSounds();
     fetchCategories();
-  }, [accessToken]);
+  }, [accessToken,currentView]);
    console.log(categories, "categories");
    
   useEffect(() => {

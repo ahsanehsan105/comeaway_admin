@@ -82,6 +82,10 @@ export default function AddOrUpdateSound({ setCurrentView, selectedSound = null,
     for (let [key, value] of formData.entries()) {
       console.log(`${key}: ${value}`);
     }
+    console.log("formData", formData);
+    console.log(accessToken, "accessToken");
+    
+    
 
     try {
       if (selectedSound) {

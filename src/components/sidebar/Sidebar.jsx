@@ -1,14 +1,15 @@
 import React, { useContext, useState } from 'react';
 import { CgList } from 'react-icons/cg';
-import { FaUser, FaRegCreditCard, FaBars, FaTimes } from 'react-icons/fa';
+import { FaUser, FaBars, FaTimes } from 'react-icons/fa';
 import { IoSettings } from 'react-icons/io5';
 import { LuLayoutDashboard } from 'react-icons/lu';
 import { MdLogout } from 'react-icons/md';
 import { TbMusicCog } from 'react-icons/tb';
 import { AuthContext } from '../../context/authContext';
 
+
 function Sidebar({ onMenuItemClick }) {
-   const {logout} = useContext(AuthContext);
+  const { logout } = useContext(AuthContext);
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('Dashboard');
 
@@ -22,7 +23,8 @@ function Sidebar({ onMenuItemClick }) {
   };
 
   const handleLogout = () => {
-   logout();
+    console.log("Logout button clicked"); 
+    logout();
   };
 
   return (
@@ -45,7 +47,6 @@ function Sidebar({ onMenuItemClick }) {
             { name: 'Dashboard', icon: <LuLayoutDashboard size={20} /> },
             { name: 'Categories', icon: <CgList size={20} /> },
             { name: 'SoundManagement', icon: <TbMusicCog size={20} /> },
-            // { name: 'Subscription', icon: <FaRegCreditCard size={20} /> },
             { name: 'UserManagement', icon: <FaUser size={20} /> },
             { name: 'Settings', icon: <IoSettings size={20} /> },
           ].map((item) => (
@@ -68,8 +69,8 @@ function Sidebar({ onMenuItemClick }) {
           <li className="mt-5">
             <button
               onClick={handleLogout}
-              className={`flex items-center px-1 py-2 text-gray-300 cursor-pointer rounded w-full text-left transition-all duration-300 ${
-                isOpen ? 'justify-start' : 'justify-center'
+              className={`flex items-center px-1 py-2 text-gray-300  hover:bg-[#5AD4FF] text-black cursor-pointer rounded w-full text-left transition-all duration-300 ${
+                isOpen ? 'justify-start bg-white text-black' : 'justify-center hover:bg-[#5AD4FF]'
               } hover:bg-[#5AD4FF] ${isOpen ? 'border-b' : 'border-none'}`}
             >
               <div className={`${isOpen ? 'mr-3' : ''} text-white`}>
