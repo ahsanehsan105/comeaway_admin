@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://comeawaybackend.vercel.app/api'; // Adjust the base URL as necessary
+const API_BASE_URL = 'https://5cfb-164-92-103-117.ngrok-free.app/api'; // Adjust the base URL as necessary
 
 // Create an Axios instance with the access token
 const createAxiosInstance = (accessToken) => {
